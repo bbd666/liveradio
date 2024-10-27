@@ -140,7 +140,7 @@ class Menu():
   def __init__(self,  **Arguments):
       width = 128
       height = 64
-      self.fillindex=0
+      self.fillindex=0#channel_ini
       self.lastupcall=datetime.now()
       self.lastdowncall=datetime.now()
       items=["WEB STATIONS","ALARME","MEDIA USB"]
@@ -212,7 +212,9 @@ class WebRadio():
   def __init__(self,  **Arguments):
       width = 128
       height = 64
-      self.fillindex=0
+      self.nb_lignes = 4
+      self.fillindex=0#channel_ini
+      self.shiftbloc=0
       self.decal=0
       self.lastupcall=datetime.now()
       self.lastdowncall=datetime.now()
@@ -220,15 +222,19 @@ class WebRadio():
       
       while True:
       
+        self.shiftbloc=self.fillindex//self.nb_lignes
+        self.decal=self.fillindex%self.nb_lignes
+
         oled.image(image_blanche)
         draw.rectangle((0, 0, width, height), outline=0, fill=0)
-        draw.rectangle((0, 2+(self.fillindex-self.decal)*15, 128, (self.fillindex-self.decal+1)*15), outline=1, fill=1)
+        draw.rectangle((0, 2+(self.decal)*15, 128, (self.decal+1)*15), outline=1, fill=1)
         
-        for i in range(0,len(liste_lbl)):
-            if i==self.fillindex :
-                draw.text((10,2+(i-self.decal)*15),liste_lbl[i],font=font3,size=1,fill=0)  
-            else :
-                draw.text((10,2+(i-self.decal)*15),liste_lbl[i],font=font3,size=1,fill=1)  
+        for i in range(0,self.nb_lignes):
+            if i+self.shiftbloc*self.nb_lignes<len(liste_lbl):
+                if i+self.shiftbloc*self.nb_lignes==self.fillindex :
+                    draw.text((10,2+i*15),liste_lbl[i+self.shiftbloc*self.nb_lignes],font=font3,size=1,fill=0)  
+                else :
+                    draw.text((10,2+i*15),liste_lbl[i+self.shiftbloc*self.nb_lignes],font=font3,size=1,fill=1)  
             
         oled.show()
         
@@ -242,29 +248,26 @@ class WebRadio():
                 break
                 
             if event.value==57 :
+            #move down 1 channel
                 now = datetime.now() 
                 a = now-self.lastdowncall    
                 if (a.seconds>0) or ((a.seconds==0) and (a.microseconds>600000)):
                     self.lastdowncall=now
                     self.fillindex=self.fillindex+1
-                    if self.fillindex>3:
-                        self.decal+=1
-                        
-                    self.fillindex=self.fillindex%len(liste_lbl)
+                    if self.fillindex>len(liste_lbl):
+                        self.fillindex=0
 
             if event.value==41 :
+             #move up 1 channel
                 now = datetime.now() 
                 a = now-self.lastupcall    
                 if (a.seconds>0) or ((a.seconds==0) and (a.microseconds>600000)):
                     self.lastupcall=now
                     self.fillindex=self.fillindex-1
-                    if self.fillindex<0:
-                        self.fillindex=len(liste_lbl)-1
-                   
+                  
             if event.value==49 :
                 #if (self.fillindex==0):                                 
                     self.change_channel()
-
                  
         key=Keypad4x4Read(col_list, row_list)
         if key != None:
