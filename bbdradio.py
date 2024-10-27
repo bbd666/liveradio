@@ -36,8 +36,7 @@ def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
         if (device.name == "gpio_ir_recv"):           
-            return device
-          
+            return device          
 dev = get_ir_device()
 
 def set_time():
@@ -87,12 +86,9 @@ image_r = image.resize((width,height), Image.LANCZOS)
 image_bw = image_r.convert("1")
 oled.image(image_bw)
 
-instance=vlc.Instance('--input-repeat=-1','--fullscreen')
-player=instance.media_player_new()
-media=instance.media_new(url)
-player.set_media(media)
-player.audio_set_volume(volume_ini)
-player.audio_output_device_set(None,'alsa_output.platform-soc_sound.stereo-fallback')
+player = vlc.MediaPlayer()
+player.set_mrl(url)
+player.play()
 
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
@@ -282,21 +278,10 @@ class WebRadio():
             time.sleep(0.3) # gives user enough time to release without having double inputs
  
   def change_channel(self):
-      player.pause()
       url=liste_url[self.fillindex]
-      media=instance.media_new(url)
-      player.set_media(media)
+      player.set_mrl(url)
       player.play()
- 
-  def play(self):
-        global player
-        global volume_ini
-        if player. is_playing():
-          player.pause()
-        else:
-          player.audio_set_volume(volume_ini)
-          player.play()
-          
+           
   def logout(self):
       self.destroy()
          
