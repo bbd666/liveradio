@@ -1,4 +1,5 @@
 
+import vlc
 import time
 import board
 from time import strftime
@@ -11,11 +12,11 @@ import digitalio
 import adafruit_ssd1306 
 import evdev
 from datetime import datetime
-import av
-import pyaudio
-import numpy as np 
+import os
 
-volume_ini=0.1
+os.system('sh remote.sh')
+
+volume_ini=100
 time_var=""
 date_var=""
 row_list=[23,24,25]
@@ -86,18 +87,13 @@ image_r = image.resize((width,height), Image.LANCZOS)
 image_bw = image_r.convert("1")
 oled.image(image_bw)
 
-container = av.open(url)
-audio_stream = container.streams.audio[0]
-samplerate = audio_stream.rate
-channels = audio_stream.channels
+instance=vlc.Instance('--input-repeat=-1','--fullscreen')
+player=instance.media_player_new()
+media=instance.media_new(url)
+player.set_media(media)
+player.audio_set_volume(volume_ini)
+player.audio_output_device_set(None,'alsa_output.platform-soc_sound.stereo-fallback')
 
-p = pyaudio.PyAudio()
-
-audio_device = p.open(format=pyaudio.paFloat32,
-                      channels=channels,
-                      rate=samplerate,
-                      output=True)
-       
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
 font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12) 
@@ -286,22 +282,21 @@ class WebRadio():
             time.sleep(0.3) # gives user enough time to release without having double inputs
  
   def change_channel(self):
+      player.pause()
       url=liste_url[self.fillindex]
-      container = av.open(url)
+      media=instance.media_new(url)
+      player.set_media(media)
+      player.play()
  
   def play(self):
-    while True:
-     try:
-        frame = next(container.decode(audio=0))
-        audio_data = frame.to_ndarray().astype(np.float32)      
-        scaled_samples = volume * audio_data
-        clipped_samples = np.clip(scaled_samples, -1.0, 1.0)
-        interleaved_data = clipped_samples.T.flatten().tobytes()    
-        audio_device.write(interleaved_data)
-        time = round(float(frame.pts * audio_stream.time_base), 2)
-     except (StopIteration, av.error.EOFError):
-        break       
-        
+        global player
+        global volume_ini
+        if player. is_playing():
+          player.pause()
+        else:
+          player.audio_set_volume(volume_ini)
+          player.play()
+          
   def logout(self):
       self.destroy()
          
@@ -312,17 +307,15 @@ fen1=Welcome()
 
 
 print("fin")
-audio_stream.close()
-container.close()
-audio_device.stop_stream()
-audio_device.close()
-p.terminate()
+player.stop()
 
 ############################################################################################################
 ############################################################################################################
+
 
 sind=str(volume_ini)
 schannel=str(channel_ini)
+
 config.set('RADIO SETTINGS', 'INDEX', schannel)
 config.set('RADIO SETTINGS', 'VOLUME',sind )
 with open('data.ini', 'w') as configfile:   
