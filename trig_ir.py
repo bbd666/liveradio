@@ -23,11 +23,7 @@ def get_ir_device():
 dev = get_ir_device()
 
 
-def trig_ir():
-    global new_result
-    global start
-    global end
-    global find_1st_zero
+def trig_ir(arg):
     event = dev.read_one()
     result=None
     if (event) :
@@ -35,29 +31,22 @@ def trig_ir():
         if not(a==0):
             result= a
         else:
-            if find_1st_zero==1:
+            if arg[3]==1:
                 result=a
-                find_1st_zero=0
+                arg[3]=0
             else:
                 result=None
-                find_1st_zero=1
+                arg[3]=1
     else:
-        find_1st_zero=0
+        arg[3]=0
     if not(result==None):
         last_result=result
-        end = time.perf_counter()
-        if not(last_result==new_result) or (end-start)>1:
-            start = time.perf_counter()
-            new_result=last_result
+        arg[2] = time.perf_counter()
+        if not(last_result==arg[0]) or (arg[2]-arg[1])>1:
+            arg[1] = time.perf_counter()
+            arg[0]=last_result
             return result
           
-#IR Trig Parameters             
-find_1st_zero=0
-x=-100   
-start = time.perf_counter()
-end=0
-new_result=-100
-
 #Rotary encounter parameters
 clkPin = 12    # CLK Pin
 dtPin = 9    # DT Pin
@@ -99,13 +88,12 @@ def set_time():
     time_var=now.strftime('%H:%M:%S')
     date_var = now.strftime("%d/%m/%Y")       
         
-        
+IR_param=[-100,time.perf_counter(),0,0]
+
 while True:
-    key=trig_ir()
+    key=trig_ir(IR_param)
     if key==None:
      key=Keypad4x4Read(col_list, row_list)
     if not(key==None):
      print(key)
     
-
-
