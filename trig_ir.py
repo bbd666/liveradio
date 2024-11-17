@@ -22,7 +22,6 @@ def get_ir_device():
             return device          
 dev = get_ir_device()
 
-
 def trig_ir(arg):
     event = dev.read_one()
     result=None
@@ -46,11 +45,6 @@ def trig_ir(arg):
             arg[1] = time.perf_counter()
             arg[0]=last_result
             return result
-          
-#Rotary encounter parameters
-clkPin = 12    # CLK Pin
-dtPin = 9    # DT Pin
-swPin = 7    # Button Pin
 
 #Keypad Parameters
 row_list=[23,24,25]
@@ -79,16 +73,49 @@ def Keypad4x4Read(cols,rows):
        last_key=key
        return key
     GPIO.output(r, GPIO.HIGH)
-    
-        
+            
 def set_time():
     now = datetime.now()
     global time_var
     global date_var
     time_var=now.strftime('%H:%M:%S')
     date_var = now.strftime("%d/%m/%Y")       
-        
+                  
+#Rotary encounter parameters
+clkPin = 12    # CLK Pin
+dtPin = 9    # DT Pin
+swPin = 7    # Button Pin
+#rotary encounter GPIO        
+GPIO.setup(clkPin, GPIO.IN)    # input mode
+GPIO.setup(dtPin, GPIO.IN)
+GPIO.setup(swPin, GPIO.IN)
+
+globalCounter = 0
+flag = 0
+def rotaryDeal():
+   global flag
+   global Last_dt_Status
+   global Current_dt_Status
+   global globalCounter
+   Last_dt_Status = GPIO.input(dtPin)
+   det=GPIO.input(swPin)
+   if (det==0):
+        global globalCounter      
+        globalCounter = 0
+   while(not GPIO.input(clkPin)):
+    Current_dt_Status = GPIO.input(dtPin)
+    flag = 1
+   if flag == 1:
+      flag = 0
+      if (Last_dt_Status == 0) and (Current_dt_Status == 1):
+         globalCounter = globalCounter + 1
+      if (Last_dt_Status == 1) and (Current_dt_Status == 0):
+         globalCounter = globalCounter - 1
+   return globalCounter
+
+       
 IR_param=[-100,time.perf_counter(),0,0]
+ROTARY_param=[0,0,0,100]
 
 while True:
     key=trig_ir(IR_param)
@@ -96,4 +123,10 @@ while True:
      key=Keypad4x4Read(col_list, row_list)
     if not(key==None):
      print(key)
+    else:
+        temp=globalCounter
+        rotaryDeal()
+        if not(temp==globalCounter):
+         print(globalCounter)
+        
     
