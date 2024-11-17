@@ -90,32 +90,26 @@ GPIO.setup(clkPin, GPIO.IN)    # input mode
 GPIO.setup(dtPin, GPIO.IN)
 GPIO.setup(swPin, GPIO.IN)
 
-globalCounter = 0
-flag = 0
-def rotaryDeal():
-   global flag
-   global Last_dt_Status
-   global Current_dt_Status
-   global globalCounter
-   Last_dt_Status = GPIO.input(dtPin)
+def rotaryDeal(arg):
+   arg[1] = GPIO.input(dtPin)
    det=GPIO.input(swPin)
    if (det==0):
         global globalCounter      
-        globalCounter = 0
+        arg[3] = 0
    while(not GPIO.input(clkPin)):
-    Current_dt_Status = GPIO.input(dtPin)
-    flag = 1
-   if flag == 1:
-      flag = 0
-      if (Last_dt_Status == 0) and (Current_dt_Status == 1):
-         globalCounter = globalCounter + 1
-      if (Last_dt_Status == 1) and (Current_dt_Status == 0):
-         globalCounter = globalCounter - 1
-   return globalCounter
+    arg[2] = GPIO.input(dtPin)
+    arg[0] = 1
+   if arg[0] == 1:
+      arg[0] = 0
+      if (arg[1] == 0) and (arg[2] == 1):
+         arg[3] = arg[3] + 1
+      if (arg[1] == 1) and (arg[2] == 0):
+         arg[3] = arg[3] - 1
+      arg[3]=max(min(arg[3],100),-100)   
 
        
 IR_param=[-100,time.perf_counter(),0,0]
-ROTARY_param=[0,0,0,100]
+ROTARY_param=[0,0,0,0]
 
 while True:
     key=trig_ir(IR_param)
@@ -124,9 +118,9 @@ while True:
     if not(key==None):
      print(key)
     else:
-        temp=globalCounter
-        rotaryDeal()
-        if not(temp==globalCounter):
-         print(globalCounter)
+        counter=ROTARY_param[3]
+        rotaryDeal(ROTARY_param)
+        if not(counter==ROTARY_param[3]):
+         print(ROTARY_param[3])
         
     
