@@ -158,7 +158,7 @@ oled.image(image_bw)
 
 player = vlc.MediaPlayer()
 player.set_mrl(url)
-#player.play()
+player.play()
 
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
@@ -234,6 +234,10 @@ while True:
                     ST1_param[3]=0
             if ( (source=="IR") and (key==41) ) :
                 ST1_param[3]=ST1_param[3]-1
+            if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                STATE=2
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                STATE=0           
 
     if STATE==2:#menus web radios
             init_menu(ST2_param,ST2_menu)           
@@ -245,10 +249,12 @@ while True:
             if ( (source=="IR") and (key==41) ) :
                 ST2_param[3]=ST2_param[3]-1
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                url=liste_url[self.fillindex]
+                url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
                 player.play()
-                
+                #player.audio_set_volume(100)
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                STATE=1            
                 
     if STATE==100:#écran de veille
             init_menu(ST100_param,ST100_menu)           
