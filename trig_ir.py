@@ -12,7 +12,7 @@ import adafruit_ssd1306
 import evdev
 from datetime import datetime
 import os
-
+ 
 os.system('sh remote.sh')
    
 def get_ir_device():
