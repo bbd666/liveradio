@@ -204,15 +204,19 @@ while True:
     if key==None: 
      key=Keypad4x4Read(col_list, row_list)
      source="clavier"
-    if (key==None):       
-        counter=ROTARY_param[3]
-        rotaryDeal(ROTARY_param)
-        if not(counter==ROTARY_param[3]):
-         source="rotary"
-         key=ROTARY_param[3]
-        else:
-         source=""
-    
+    # if (key==None):       
+        # counter=ROTARY_param[3]
+        # rotaryDeal(ROTARY_param)
+        # if not(counter==ROTARY_param[3]):
+         # source="rotary"
+         # key=ROTARY_param[3]
+        # else:
+         # source=""
+    # if not(source==""):
+    if not(key==None):
+         print(source)
+         print(key)   
+         
     if STATE==0:
             draw=ImageDraw.Draw(image_bw) 
             oled.image(image_bw)
@@ -224,7 +228,9 @@ while True:
             oled.show()
             if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
                 STATE=1
-
+          # if  ((source=="IR") and (key==0)):
+          #      STATE=100
+                
     if STATE==1:#menus principaux
             init_menu(ST1_param,ST1_menu)           
  
@@ -238,7 +244,9 @@ while True:
                 STATE=2
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0           
-
+          #  if ((source=="IR") and (key==0)):
+          #     STATE=100
+                
     if STATE==2:#menus web radios
             init_menu(ST2_param,ST2_menu)           
 
@@ -252,20 +260,27 @@ while True:
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
                 player.play()
-                #player.audio_set_volume(100)
+                player.audio_set_volume(200)
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=1            
+            if ((source=="IR") and (key==0)):
+               STATE=100
                 
     if STATE==100:#écran de veille
-            init_menu(ST100_param,ST100_menu)           
-            set_time()
-            draw.text((55,2),time_var,font=font100,size=1,fill=1)  
-            draw.text((40,45),date_var,font=font100,size=1,fill=1)  
+        draw=ImageDraw.Draw(image_blanche)
+        oled.image(image_blanche)               
+        draw.rectangle((0, 0, width, height), outline=0, fill=0)
+        draw.text((55,2),time_var,font=font100,size=1,fill=0)  
+        draw.text((40,45),date_var,font=font100,size=1,fill=0)  
+        set_time()
+        draw.text((55,2),time_var,font=font100,size=1,fill=1)  
+        draw.text((40,45),date_var,font=font100,size=1,fill=1)  
+        oled.show()
+        #if ((source=="IR") and (key==0)):
+           # STATE=0
 
          
-    # if not(source==""):
-        # print(source)
-        # print(key)
+
          
         
     
