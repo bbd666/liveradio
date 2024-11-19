@@ -12,9 +12,22 @@ import adafruit_ssd1306
 import evdev
 from datetime import datetime
 import os
- 
+#import subprocess
 
 os.system('sh remote.sh')
+
+def scan_wifis(ssids):
+    networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
+    networks = networks.decode('ascii')
+    networks = networks.replace('\r', '')
+    ssid = networks.split('\n')
+    sid = ssid[4:]
+    ssids = []
+    x = 0
+    while x < len(ssid):
+        if x % 5 == 0:
+            ssids.append(ssid[x])
+        x += 1
    
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
