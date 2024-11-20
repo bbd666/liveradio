@@ -16,6 +16,10 @@ import os
 
 os.system('sh remote.sh')
 
+now=datetime.now()
+lastnow=datetime.now()
+update=True       
+
 def scan_wifis(ssids):
     networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
     networks = networks.decode('ascii')
@@ -163,7 +167,7 @@ player.play()
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
 font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
-font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 8)
+font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
        
 IR_param=[-100,time.perf_counter(),0,0]
 ROTARY_param=[0,0,0,0,-1]
@@ -204,43 +208,54 @@ while True:
     if key==None: 
      key=Keypad4x4Read(col_list, row_list)
      source="clavier"
-    # if (key==None):       
-        # counter=ROTARY_param[3]
-        # rotaryDeal(ROTARY_param)
-        # if not(counter==ROTARY_param[3]):
-         # source="rotary"
-         # key=ROTARY_param[3]
-        # else:
-         # source=""
-    # if not(source==""):
+    if (key==None):       
+        counter=ROTARY_param[3]
+        rotaryDeal(ROTARY_param)
+        if not(counter==ROTARY_param[3]):
+         source="rotary"
+         key=ROTARY_param[3]
+        else:
+         source=""
+         
+
     if not(key==None):
          print(source)
          print(key)   
          
     if STATE==0:
-            draw=ImageDraw.Draw(image_bw) 
-            oled.image(image_bw)
-            draw.text((55,2),time_var,font=font1,size=1,fill=0)  
-            draw.text((40,45),date_var,font=font2,size=1,fill=0)  
-            set_time()
-            draw.text((55,2),time_var,font=font1,size=1,fill=1)  
-            draw.text((40,45),date_var,font=font2,size=1,fill=1)  
-            oled.show()
+            now=datetime.now()
+            deltat=now-lastnow
+            if (deltat.microseconds>950000):
+                draw=ImageDraw.Draw(image_bw) 
+                oled.image(image_bw)
+                draw.text((55,2),time_var,font=font1,size=1,fill=0)  
+                draw.text((40,45),date_var,font=font2,size=1,fill=0)  
+                set_time()
+                draw.text((55,2),time_var,font=font1,size=1,fill=1)  
+                draw.text((40,45),date_var,font=font2,size=1,fill=1)  
+                oled.show()
+            lastnow=now
             if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
+                update=True
                 STATE=1
           # if  ((source=="IR") and (key==0)):
           #      STATE=100
                 
     if STATE==1:#menus principaux
-            init_menu(ST1_param,ST1_menu)           
+            if update:
+                init_menu(ST1_param,ST1_menu)           
+                update=False
  
             if ( (source=="IR") and (key==57) ) :
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
                     ST1_param[3]=0
+                update=True
             if ( (source=="IR") and (key==41) ) :
                 ST1_param[3]=ST1_param[3]-1
+                update=True
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
                 STATE=2
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0           
@@ -248,14 +263,18 @@ while True:
           #     STATE=100
                 
     if STATE==2:#menus web radios
-            init_menu(ST2_param,ST2_menu)           
+            if update:
+                init_menu(ST2_param,ST2_menu)
+                update=False
 
             if ( (source=="IR") and (key==57) ) :
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
+                update=True
             if ( (source=="IR") and (key==41) ) :
                 ST2_param[3]=ST2_param[3]-1
+                update=True
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
@@ -263,21 +282,26 @@ while True:
                 player.audio_set_volume(200)
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=1            
+                update=True
             if ((source=="IR") and (key==0)):
                STATE=100
                 
     if STATE==100:#écran de veille
-        draw=ImageDraw.Draw(image_blanche)
-        oled.image(image_blanche)               
-        draw.rectangle((0, 0, width, height), outline=0, fill=0)
-        draw.text((55,2),time_var,font=font100,size=1,fill=0)  
-        draw.text((40,45),date_var,font=font100,size=1,fill=0)  
-        set_time()
-        draw.text((55,2),time_var,font=font100,size=1,fill=1)  
-        draw.text((40,45),date_var,font=font100,size=1,fill=1)  
-        oled.show()
-        #if ((source=="IR") and (key==0)):
-           # STATE=0
+            now=datetime.now()
+            deltat=now-lastnow
+            if (deltat.microseconds>950000):
+                draw=ImageDraw.Draw(image_blanche)
+                oled.image(image_blanche)               
+                draw.rectangle((0, 0, width, height), outline=0, fill=0)
+                draw.text((55,2),time_var,font=font100,size=1,fill=0)  
+                draw.text((40,45),date_var,font=font100,size=1,fill=0)  
+                set_time()
+                draw.text((55,2),time_var,font=font100,size=1,fill=1)  
+                draw.text((40,45),date_var,font=font100,size=1,fill=1)  
+                oled.show()
+            lastnow=now
+            #if ((source=="IR") and (key==0)):
+                #STATE=0
 
          
 
