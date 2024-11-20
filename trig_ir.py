@@ -175,6 +175,7 @@ ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
 
 def init_menu(arg,items):
+    global update
     global image_blanche
     global width
     global height
@@ -192,6 +193,7 @@ def init_menu(arg,items):
             else :
                 draw.text((10,2+i*15),items[i+arg[1]*arg[0]],font=font3,size=1,fill=1)
     oled.show()
+    update=False
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
@@ -235,18 +237,17 @@ while True:
                 draw.text((55,2),time_var,font=font1,size=1,fill=1)  
                 draw.text((40,45),date_var,font=font2,size=1,fill=1)  
                 oled.show()
-            lastnow=now
+                lastnow=now
+                if  ((source=="IR") and (key==0)):
+                    STATE=100
             if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
                 update=True
                 STATE=1
-          # if  ((source=="IR") and (key==0)):
-          #      STATE=100
                 
     if STATE==1:#menus principaux
             if update:
                 init_menu(ST1_param,ST1_menu)           
-                update=False
- 
+  
             if ( (source=="IR") and (key==57) ) :
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
@@ -300,9 +301,9 @@ while True:
                 draw.text((55,2),time_var,font=font100,size=1,fill=1)  
                 draw.text((40,45),date_var,font=font100,size=1,fill=1)  
                 oled.show()
-            lastnow=now
-            #if ((source=="IR") and (key==0)):
-                #STATE=0
+                lastnow=now
+                if ((source=="IR") and (key==0)):
+                    STATE=0
 
          
 
