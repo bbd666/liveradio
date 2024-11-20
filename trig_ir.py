@@ -47,6 +47,7 @@ def trig_ir(arg):
         a = event.value
         if not(a==0):
             result= a
+            arg[3]=0
         else:
             if arg[3]==1:
                 result=a
