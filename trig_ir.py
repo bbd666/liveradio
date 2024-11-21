@@ -19,6 +19,7 @@ os.system('sh remote.sh')
 now=datetime.now()
 lastnow=datetime.now()
 update=True       
+veille_switch=True
 
 def scan_wifis(ssids):
     networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
@@ -93,14 +94,14 @@ def Keypad4x4Read(cols,rows):
        return key
     GPIO.output(r, GPIO.HIGH)
     
-time_var=""
-date_var=""    
-def set_time():
+time_var=["",""]
+date_var=["",""]    
+def set_time(arg):
     now = datetime.now()
     global time_var
     global date_var
-    time_var=now.strftime('%H:%M:%S')
-    date_var = now.strftime("%d/%m/%Y")      
+    time_var[arg] = now.strftime('%H:%M:%S')
+    date_var[arg] = now.strftime("%d/%m/%Y")      
                   
 #Rotary encounter parameters
 clkPin = 12    # CLK Pin
@@ -163,7 +164,7 @@ oled.image(image_bw)
 
 player = vlc.MediaPlayer()
 player.set_mrl(url)
-player.play()
+#player.play()
 
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
@@ -183,7 +184,6 @@ def init_menu(arg,items):
     draw=ImageDraw.Draw(image_blanche)
     arg[1]=arg[3]//arg[0]
     arg[2]=arg[3]%arg[0]
-    oled.image(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
     draw.rectangle((0, 2+arg[2]*15, 128, (arg[2]+1)*15), outline=1, fill=1)            
     for i in range(0,arg[0]):
@@ -192,6 +192,7 @@ def init_menu(arg,items):
                 draw.text((10,2+i*15),items[i+arg[1]*arg[0]],font=font3,size=1,fill=0)  
             else :
                 draw.text((10,2+i*15),items[i+arg[1]*arg[0]],font=font3,size=1,fill=1)
+    oled.image(image_blanche)
     oled.show()
     update=False
             
@@ -230,24 +231,28 @@ while True:
             deltat=now-lastnow
             if (deltat.microseconds>950000):
                 draw=ImageDraw.Draw(image_bw) 
+                draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
+                draw.text((40,45),date_var[0],font=font2,size=1,fill=0)  
+                set_time(0)
+                draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
+                draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
                 oled.image(image_bw)
-                draw.text((55,2),time_var,font=font1,size=1,fill=0)  
-                draw.text((40,45),date_var,font=font2,size=1,fill=0)  
-                set_time()
-                draw.text((55,2),time_var,font=font1,size=1,fill=1)  
-                draw.text((40,45),date_var,font=font2,size=1,fill=1)  
                 oled.show()
                 lastnow=now
-                if  ((source=="IR") and (key==0)):
-                    STATE=100
             if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
                 update=True
                 STATE=1
+            if  ((source=="IR") and (key==0) and (veille_switch)):
+                veille_switch=False
+                STATE=100
+            else:
+                veille_switch=True
+            
                 
     if STATE==1:#menus principaux
-            if update:
-                init_menu(ST1_param,ST1_menu)           
-  
+            if update==True:
+               init_menu(ST1_param,ST1_menu)           
+   
             if ( (source=="IR") and (key==57) ) :
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
@@ -260,7 +265,7 @@ while True:
                 update=True
                 STATE=2
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                STATE=0           
+                STATE=0   
           #  if ((source=="IR") and (key==0)):
           #     STATE=100
                 
@@ -293,17 +298,19 @@ while True:
             deltat=now-lastnow
             if (deltat.microseconds>950000):
                 draw=ImageDraw.Draw(image_blanche)
+                draw.text((55,2),time_var[1],font=font100,size=1,fill=0)  
+                draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
+                set_time(1)
+                draw.text((55,2),time_var[1],font=font100,size=1,fill=1)  
+                draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
                 oled.image(image_blanche)               
-                draw.rectangle((0, 0, width, height), outline=0, fill=0)
-                draw.text((55,2),time_var,font=font100,size=1,fill=0)  
-                draw.text((40,45),date_var,font=font100,size=1,fill=0)  
-                set_time()
-                draw.text((55,2),time_var,font=font100,size=1,fill=1)  
-                draw.text((40,45),date_var,font=font100,size=1,fill=1)  
                 oled.show()
                 lastnow=now
-                if ((source=="IR") and (key==0)):
-                    STATE=0
+            if ((source=="IR") and (key==0) and (veille_switch)):
+                veille_switch=False
+                STATE=0
+            else:
+                veille_switch=True
 
          
 
