@@ -19,7 +19,7 @@ os.system('sh remote.sh')
 now=datetime.now()
 lastnow=datetime.now()
 update=True       
-veille_switch=True
+
 
 def scan_wifis(ssids):
     networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
@@ -247,8 +247,9 @@ try:
     if not(key==None):
          print(source)
          print(key)   
-         
-    if STATE==0:
+    
+    match STATE:
+     case 0:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
@@ -264,13 +265,10 @@ try:
             if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
                 update=True
                 STATE=1
-            if  ((source=="IR") and (key==0) and (veille_switch)):
-                veille_switch=False
+            if  ((source=="IR") and (key==0) ):
                 STATE=100
-            else:
-                veille_switch=True           
-                
-    if STATE==1:#menus principaux
+                 
+     case 1:#menus principaux
             if update==True:
                init_menu(ST1_param,ST1_menu)           
    
@@ -290,13 +288,10 @@ try:
                 STATE=3
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
-            if  ((source=="IR") and (key==0) and (veille_switch)):
-                veille_switch=False
+            if  ((source=="IR") and (key==0) ):
                 STATE=100
-            else:
-                veille_switch=True           
-                
-    if STATE==2:#menus web radios
+  
+     case 2:#menus web radios
             if update:
                 init_menu(ST2_param,ST2_menu)
 
@@ -331,7 +326,7 @@ try:
             if ((source=="IR") and (key==0)):
                STATE=100
   
-    if STATE==3:#menus settings alarme
+     case 3:#menus settings alarme
             if update:
                 init_menu(ST3_param,ST3_menu)
 
@@ -353,9 +348,10 @@ try:
                 update=True
                 STATE=32
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
                 STATE=1 
 
-    if STATE==30:#menus activation alarme
+     case 30:#menus activation alarme
         if update:
             draw=ImageDraw.Draw(image_blanche)
             draw.rectangle((0, 0, width, height), outline=0, fill=0)
@@ -366,6 +362,7 @@ try:
             oled.image(image_blanche)
             oled.show()
             update=False  
+            
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
             STATE=3                
@@ -376,7 +373,7 @@ try:
                 alarm_set=1
             update=True
                 
-    if STATE==100:#écran de veille
+     case 100:#écran de veille
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
@@ -390,17 +387,18 @@ try:
                 oled.image(image_blanche)               
                 oled.show()
                 lastnow=now
-            if ((source=="IR") and (key==0) and (veille_switch)):
-                veille_switch=False
+            if ((source=="IR") and (key==0) ):
                 STATE=0
-            else:
-                veille_switch=True
-
+ 
 except KeyboardInterrupt:
     sind=str(volume)
     schannel=str(channel_ini)
     config.set('RADIO SETTINGS', 'INDEX', schannel)
     config.set('RADIO SETTINGS', 'VOLUME',sind )
+    config.set('ALARM', 'SET',str(alarm_set) )
+    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
+    config.set('ALARM', 'MIN',str(alarm_clck_min) )
+    config.set('ALARM', 'SOURCE',str(alarm_source) )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
          
