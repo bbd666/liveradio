@@ -143,6 +143,10 @@ for i in range(1,int(nb)+1):
   liste_lbl.append(config['STREAMS']['LBL'+str(i)])
 volume=int(config['RADIO SETTINGS']['volume'])
 channel_ini=int(config['RADIO SETTINGS']['index'])
+alarm_set=int(config['ALARM']['SET'])
+alarm_clck_hour=int(config['ALARM']['HOUR'])
+alarm_clck_min=int(config['ALARM']['MIN'])
+alarm_source=int(config['ALARM']['SOURCE'])
 url=liste_url[channel_ini]
 
 oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
@@ -169,6 +173,7 @@ player.set_mrl(url)
 font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
 font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
 font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
+font4 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 10)
 font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
        
 IR_param=[-100,time.perf_counter(),0,0]
@@ -195,17 +200,34 @@ def init_menu(arg,items):
     oled.image(image_blanche)
     oled.show()
     update=False
+    
+def sound_box(arg):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    draw=ImageDraw.Draw(image_blanche)
+    space=2
+    draw.rectangle((round(width/4), round(height/2-5), round(3*width/4),  round(height/2+5)), outline=1, fill=0)
+    draw.rectangle((round(width/4+space), round(height/2-5+space),round(arg/200*width/2+width/4-space),round(height/2+5-space)), outline=1, fill=1)            
+    oled.image(image_blanche)
+    oled.show()
+    
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
 ST2_param=[4,0,0,0]
 ST2_menu=liste_lbl
+ST3_param=[3,0,0,0]
+ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
 
 STATE=0
 
-while True:
+try:
+ while True:
             
     key=trig_ir(IR_param)
     source="IR"
@@ -246,8 +268,7 @@ while True:
                 veille_switch=False
                 STATE=100
             else:
-                veille_switch=True
-            
+                veille_switch=True           
                 
     if STATE==1:#menus principaux
             if update==True:
@@ -264,15 +285,20 @@ while True:
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=2
+            if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=3
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
-          #  if ((source=="IR") and (key==0)):
-          #     STATE=100
+            if  ((source=="IR") and (key==0) and (veille_switch)):
+                veille_switch=False
+                STATE=100
+            else:
+                veille_switch=True           
                 
     if STATE==2:#menus web radios
             if update:
                 init_menu(ST2_param,ST2_menu)
-                update=False
 
             if ( (source=="IR") and (key==57) ) :
                 ST2_param[3]=ST2_param[3]+1
@@ -282,22 +308,80 @@ while True:
             if ( (source=="IR") and (key==41) ) :
                 ST2_param[3]=ST2_param[3]-1
                 update=True
+                
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
                 player.play()
-                player.audio_set_volume(200)
+            if ( (source=="IR") and (key==43) ) :
+                volume=min(volume+5,200)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+              #  time.sleep(3)
+               # update=True
+            if ( (source=="IR") and (key==51) ) :
+                volume=max(volume-5,0)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+              #  time.sleep(3)
+              #  update=True
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=1            
                 update=True
             if ((source=="IR") and (key==0)):
                STATE=100
+  
+    if STATE==3:#menus settings alarme
+            if update:
+                init_menu(ST3_param,ST3_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST3_param[3]=ST3_param[3]+1
+                if ST3_param[3]>len(ST3_menu)-1:
+                    ST3_param[3]=0
+                update=True
+            if ( (source=="IR") and (key==41) ) :
+                ST3_param[3]=ST3_param[3]-1
+                update=True
+            if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=30
+            if (ST3_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=31
+            if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=32
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                STATE=1 
+
+    if STATE==30:#menus activation alarme
+        if update:
+            draw=ImageDraw.Draw(image_blanche)
+            draw.rectangle((0, 0, width, height), outline=0, fill=0)
+            if alarm_set==1:
+                draw.text((10,30),"ALARME ACTIVE",font=font4,size=1,fill=1)
+            else:            
+                draw.text((10,30),"ALARME DESACTIVEE",font=font4,size=1,fill=1)
+            oled.image(image_blanche)
+            oled.show()
+            update=False  
+        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+            update=True
+            STATE=3                
+        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if alarm_set==1:
+                alarm_set=0 
+            else:
+                alarm_set=1
+            update=True
                 
     if STATE==100:#écran de veille
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
                 draw=ImageDraw.Draw(image_blanche)
+                draw.rectangle((0, 0, width, height), outline=0, fill=0)
                 draw.text((55,2),time_var[1],font=font100,size=1,fill=0)  
                 draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
                 set_time(1)
@@ -312,8 +396,13 @@ while True:
             else:
                 veille_switch=True
 
-         
-
+except KeyboardInterrupt:
+    sind=str(volume)
+    schannel=str(channel_ini)
+    config.set('RADIO SETTINGS', 'INDEX', schannel)
+    config.set('RADIO SETTINGS', 'VOLUME',sind )
+    with open('data.ini', 'w') as configfile:   
+        config.write(configfile)
          
         
     
