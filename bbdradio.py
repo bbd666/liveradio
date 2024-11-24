@@ -377,6 +377,8 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
+                if player.is_playing():
+                    player.stop()
                 draw=ImageDraw.Draw(image_blanche)
                 draw.rectangle((0, 0, width, height), outline=0, fill=0)
                 draw.text((55,2),time_var[1],font=font100,size=1,fill=0)  
