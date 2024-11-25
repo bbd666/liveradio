@@ -219,17 +219,17 @@ def set_hour(arg):
     global width
     global height
     global oled
-    largeur 5
-    hauteur 6
+    largeur=5
+    hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
     for i in range(4):
         j=i//2
         if arg[4]==i:
-            draw.rectangle((10+20*i+j*20-largeur,30+hauteur,20+20*i+j*20+largeur,20-hauteur), outline=1, fill=1)          
-            draw.text((10+20*i+j*20,30),arg[i],font=font3,size=1,fill=0)  
+            draw.rectangle((10+20*i+j*20-largeur,40+hauteur,20+20*i+j*20+largeur,30-hauteur), outline=1, fill=1)          
+            draw.text((10+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=0)  
         else :
-            draw.text((10+20*i+j*20,30),arg[i],font=font3,size=1,fill=1)
+            draw.text((10+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=1)
     draw.text((50,30),":",font=font3,size=1,fill=1)
     oled.image(image_blanche)
     oled.show()
@@ -319,7 +319,7 @@ try:
                 for f in liste:
                     extension = os.path.splitext(f)[1]
                     if ( (extension==".mp3") or (extension==".wav") ):
-                    usb_liste.append(f)
+                        usb_liste.append(f)
                 ST_USB=[4,0,0,0]
                 update=True
                 STATE=4
@@ -413,7 +413,7 @@ try:
             
      case 31:#menus reglage alarme
         if update:
-            h=[alarm_clck_hour%10,alarm_clck_hour//10,alarm_clck_min%10,alarm_clck_min//10,digit_sel]
+            h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
             set_hour(h) 
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
@@ -421,26 +421,26 @@ try:
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             digit_sel=(digit_sel+1)%4
             update=True
-        if ( (source=="IR") and (key==43) ) :
+        if ( (source=="IR") and (key==41) ) :
             match digit_sel:
-            case 0:
+             case 0:
                 alarm_clck_hour=min(alarm_clck_hour+10,23)
-            case 1:
+             case 1:
                 alarm_clck_hour=min(alarm_clck_hour+1,23)
-            case 2:
+             case 2:
                 alarm_clck_min=min(alarm_clck_min+10,59)
-            case 3:
+             case 3:
                 alarm_clck_min=min(alarm_clck_min+1,59)
             update=True
-        if ( (source=="IR") and (key==51) ) :
+        if ( (source=="IR") and (key==57) ) :
             match digit_sel:
-            case 0:
+             case 0:
                 alarm_clck_hour=max(alarm_clck_hour-10,0)
-            case 1:
+             case 1:
                 alarm_clck_hour=max(alarm_clck_hour-1,0)
-            case 2:
+             case 2:
                 alarm_clck_min=max(alarm_clck_min-10,0)
-            case 3:
+             case 3:
                 alarm_clck_min=max(alarm_clck_min-1,0)                
             update=True                
       #  if ( (source=="IR") and (key==41) ) :
@@ -501,10 +501,10 @@ try:
                     player.stop()
                 draw=ImageDraw.Draw(image_blanche)
                 draw.rectangle((0, 0, width, height), outline=0, fill=0)
-                draw.text((55,2),time_var[1],font=font100,size=1,fill=0)  
+                draw.text((50,2),time_var[1],font=font100,size=1,fill=0)  
                 draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
                 set_time(1)
-                draw.text((55,2),time_var[1],font=font100,size=1,fill=1)  
+                draw.text((50,2),time_var[1],font=font100,size=1,fill=1)  
                 draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
                 oled.image(image_blanche)               
                 oled.show()
