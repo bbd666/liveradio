@@ -202,7 +202,6 @@ def init_menu(arg,items):
     update=False
     
 def sound_box(arg):
-    global update
     global image_blanche
     global width
     global height
@@ -225,12 +224,13 @@ def set_hour(arg):
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
     for i in range(4):
+        j=i//2
         if arg[4]==i:
-            draw.rectangle((10+20*i-largeur,30-hauteur,5+20*i+largeur,40+hauteur), outline=1, fill=1)          
-            draw.text((10+20*i,30),arg[i],font=font3,size=1,fill=0)  
+            draw.rectangle((10+20*i+j*20-largeur,30+hauteur,20+20*i+j*20+largeur,20-hauteur), outline=1, fill=1)          
+            draw.text((10+20*i+j*20,30),arg[i],font=font3,size=1,fill=0)  
         else :
-            draw.text((10+20*i,30),arg[i],font=font3,size=1,fill=1)
-    draw.text((40,30),":",font=font3,size=1,fill=1)
+            draw.text((10+20*i+j*20,30),arg[i],font=font3,size=1,fill=1)
+    draw.text((50,30),":",font=font3,size=1,fill=1)
     oled.image(image_blanche)
     oled.show()
     update=False    
@@ -268,6 +268,12 @@ try:
     if not(key==None):
          print(source)
          print(key)   
+    
+    now=datetime.now()
+    if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
+        if not(player.is_playing()):
+            player.set_mrl(alarm_source)
+            player.play()   
     
     match STATE:
      case 0:
@@ -323,6 +329,8 @@ try:
                 update=True
             if ( (source=="IR") and (key==41) ) :
                 ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
                 update=True
                 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -333,14 +341,10 @@ try:
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
-              #  time.sleep(3)
-               # update=True
             if ( (source=="IR") and (key==51) ) :
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
-              #  time.sleep(3)
-              #  update=True
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=1            
                 update=True
@@ -405,8 +409,52 @@ try:
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             digit_sel=(digit_sel+1)%4
             update=True
+        if ( (source=="IR") and (key==43) ) :
+            match digit_sel:
+            case 0:
+                alarm_clck_hour=min(alarm_clck_hour+10,23)
+            case 1:
+                alarm_clck_hour=min(alarm_clck_hour+1,23)
+            case 2:
+                alarm_clck_min=min(alarm_clck_min+10,59)
+            case 3:
+                alarm_clck_min=min(alarm_clck_min+1,59)
+            update=True
+        if ( (source=="IR") and (key==51) ) :
+            match digit_sel:
+            case 0:
+                alarm_clck_hour=max(alarm_clck_hour-10,0)
+            case 1:
+                alarm_clck_hour=max(alarm_clck_hour-1,0)
+            case 2:
+                alarm_clck_min=max(alarm_clck_min-10,0)
+            case 3:
+                alarm_clck_min=max(alarm_clck_min-1,0)                
+            update=True                
       #  if ( (source=="IR") and (key==41) ) :
             
+     case 32:#menus selection source alarme
+            if update:
+                init_menu(ST2_param,ST2_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST2_param[3]=ST2_param[3]+1
+                if ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                update=True
+                
+            if ( (source=="IR") and (key==41) ) :
+                ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                update=True                
+                
+            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                alarm_source=ST2_param[3]
+
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=3            
                 
      case 100:#écran de veille
             now=datetime.now()
