@@ -213,7 +213,27 @@ def sound_box(arg):
     draw.rectangle((round(width/4+space), round(height/2-5+space),round(arg/200*width/2+width/4-space),round(height/2+5-space)), outline=1, fill=1)            
     oled.image(image_blanche)
     oled.show()
-    
+
+def set_hour(arg):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    largeur 5
+    hauteur 6
+    draw=ImageDraw.Draw(image_blanche)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)          
+    for i in range(4):
+        if arg[4]==i:
+            draw.rectangle((10+20*i-largeur,30-hauteur,5+20*i+largeur,40+hauteur), outline=1, fill=1)          
+            draw.text((10+20*i,30),arg[i],font=font3,size=1,fill=0)  
+        else :
+            draw.text((10+20*i,30),arg[i],font=font3,size=1,fill=1)
+    draw.text((40,30),":",font=font3,size=1,fill=1)
+    oled.image(image_blanche)
+    oled.show()
+    update=False    
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
@@ -225,6 +245,7 @@ ST100_param=[0,0,0,0]
 ST100_menu=[]
 
 STATE=0
+digit_sel=0
 
 try:
  while True:
@@ -329,7 +350,7 @@ try:
      case 3:#menus settings alarme
             if update:
                 init_menu(ST3_param,ST3_menu)
-
+            print(ST3_param[3])
             if ( (source=="IR") and (key==57) ) :
                 ST3_param[3]=ST3_param[3]+1
                 if ST3_param[3]>len(ST3_menu)-1:
@@ -343,7 +364,8 @@ try:
                 STATE=30
             if (ST3_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=31
+                digit_sel=0
+                STATE=31     
             if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=32
@@ -372,6 +394,19 @@ try:
             else:
                 alarm_set=1
             update=True
+            
+     case 31:#menus reglage alarme
+        if update:
+            h=[alarm_clck_hour%10,alarm_clck_hour//10,alarm_clck_min%10,alarm_clck_min//10,digit_sel]
+            set_hour(h) 
+        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+            update=True
+            STATE=3                
+        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            digit_sel=(digit_sel+1)%4
+            update=True
+      #  if ( (source=="IR") and (key==41) ) :
+            
                 
      case 100:#écran de veille
             now=datetime.now()
