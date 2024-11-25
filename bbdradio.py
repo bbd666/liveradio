@@ -226,11 +226,11 @@ def set_hour(arg):
     for i in range(4):
         j=i//2
         if arg[4]==i:
-            draw.rectangle((10+20*i+j*20-largeur,40+hauteur,20+20*i+j*20+largeur,30-hauteur), outline=1, fill=1)          
-            draw.text((10+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=0)  
+            draw.rectangle((25+20*i+j*20-largeur,40+hauteur,35+20*i+j*20+largeur,30-hauteur), outline=1, fill=1)          
+            draw.text((25+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=0)  
         else :
-            draw.text((10+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=1)
-    draw.text((50,30),":",font=font3,size=1,fill=1)
+            draw.text((25+20*i+j*20,30),str(arg[i]),font=font3,size=1,fill=1)
+    draw.text((65,30),":",font=font3,size=1,fill=1)
     oled.image(image_blanche)
     oled.show()
     update=False    
