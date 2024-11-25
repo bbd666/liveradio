@@ -312,7 +312,17 @@ try:
                 STATE=2
             if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=3
+                STATE=3            
+            if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                liste=os.listdir("D:/")
+                usb_liste=[]
+                for f in liste:
+                    extension = os.path.splitext(f)[1]
+                    if ( (extension==".mp3") or (extension==".wav") ):
+                    usb_liste.append(f)
+                ST_USB=[4,0,0,0]
+                update=True
+                STATE=4
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
             if  ((source=="IR") and (key==0) ):
@@ -354,7 +364,7 @@ try:
      case 3:#menus settings alarme
             if update:
                 init_menu(ST3_param,ST3_menu)
-            print(ST3_param[3])
+
             if ( (source=="IR") and (key==57) ) :
                 ST3_param[3]=ST3_param[3]+1
                 if ST3_param[3]>len(ST3_menu)-1:
@@ -455,6 +465,31 @@ try:
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=3            
+
+     case 4:#menus media
+            if update:
+                init_menu(ST_USB,usb_liste)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST_USB[3]=ST_USB[3]+1
+                if ST_USB[3]>len(usb_liste)-1:
+                    ST_USB[3]=0
+                update=True
+                
+            if ( (source=="IR") and (key==41) ) :
+                ST_USB[3]=ST_USB[3]-1
+                if ST_USB[3]<0:
+                    ST_USB[3]=len(usb_liste)-1
+                update=True                
+                
+            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                url=usb_liste[ST_USB[3]]
+                player.set_mrl(url)
+                player.play()
+
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=1 
                 
      case 100:#écran de veille
             now=datetime.now()
