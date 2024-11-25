@@ -372,6 +372,8 @@ try:
                 update=True
             if ( (source=="IR") and (key==41) ) :
                 ST3_param[3]=ST3_param[3]-1
+                if ST3_param[3]<0:
+                    ST3_param[3]=len(ST3_menu)-1
                 update=True
             if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
