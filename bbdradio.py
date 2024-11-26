@@ -254,7 +254,7 @@ ST100_menu=[]
 
 STATE=0
 digit_sel=0
-ROTARY_param[3]=volume
+last_rotary_position=ROTARY_param[3]
 
 try:
  while True:
@@ -298,16 +298,36 @@ try:
                 oled.image(image_bw)
                 oled.show()
                 lastnow=now
+            
+            
             if ( (source=="IR") and ((key==3) or (key==49)) ) or ((source=="clavier") and (key==5) ):
                 update=True
-                ROTARY_param[3]=0
+                
                 STATE=1
+                
             if  ((source=="IR") and (key==0) ):
                 STATE=100
+                
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                volume=min(max(key+100,0),200)
+                if key>last_rotary_position:
+                    volume=min(volume+1,200)
+                if key<last_rotary_position:
+                    volume=max(volume-1,0)
+                sound_box(volume)
                 player.audio_set_volume(volume)
-                 
+                last_rotary_position=ROTARY_param[3]
+
+                
+            if ( (source=="IR") and (key==43) ) :
+                volume=min(volume+5,200)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+                
+            if ( (source=="IR") and (key==51) ) :
+                volume=max(volume-5,0)
+                sound_box(volume)
+                player.audio_set_volume(volume)     
+                
      case 1:#menus principaux
             if update==True:
                init_menu(ST1_param,ST1_menu)           
@@ -325,24 +345,25 @@ try:
                 update=True
                 
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST1_param[3]=ST1_param[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST1_param[3]=ST1_param[3]-1
                 if ST1_param[3]>len(ST1_menu)-1:
                     ST1_param[3]=0
                 if ST1_param[3]<0:
                     ST1_param[3]=len(ST1_menu)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
                     
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=2
                 
             if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=3         
                 
             if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
@@ -354,7 +375,7 @@ try:
                         usb_liste.append(f)
                 ST_USB=[4,0,0,0]
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=4
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
@@ -381,14 +402,15 @@ try:
                 update=True
                 
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -407,7 +429,7 @@ try:
                 player.audio_set_volume(volume)
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=1            
                 update=True
                 
@@ -430,14 +452,15 @@ try:
                 update=True
                 
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST3_param[3]=ST3_param[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST3_param[3]=ST3_param[3]-1
                 if ST3_param[3]>len(ST3_menu)-1:
                     ST3_param[3]=0
                 if ST3_param[3]<0:
                     ST3_param[3]=len(ST3_menu)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
 
             if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
@@ -451,17 +474,17 @@ try:
                 
             if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=32
                 
             if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=33
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=1 
 
      case 30:#menus activation alarme
@@ -478,7 +501,7 @@ try:
             
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
-            ROTARY_param[3]=0
+            last_rotary_position=ROTARY_param[3]
             STATE=3               
             
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -495,7 +518,7 @@ try:
             
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
-            ROTARY_param[3]=0
+            last_rotary_position=ROTARY_param[3]
             STATE=3       
             
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -543,14 +566,15 @@ try:
                 update=True                
                 
            if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -558,7 +582,7 @@ try:
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=3            
 
      case 33:#menus selection melodie
@@ -578,14 +602,15 @@ try:
                 update=True                
                 
            if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST_melodies[3]=ST_melodies[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST_melodies[3]=ST_melodies[3]-1
                 if ST_melodies[3]>len(liste_melodies)-1:
                     ST_melodies[3]=0
                 if ST_melodies[3]<0:
                     ST_melodies[3]=len(liste_melodies)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -593,7 +618,7 @@ try:
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                ROTARY_param[3]=0
+                last_rotary_position=ROTARY_param[3]
                 STATE=3            
 
      case 4:#menus media
