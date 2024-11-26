@@ -297,7 +297,7 @@ try:
                 oled.image(image_bw)
                 oled.show()
                 lastnow=now
-            if ( (source=="IR") and (key==3) ) or ((source=="clavier") and (key==5) ):
+            if ( (source=="IR") and ((key==3) or (key==49)) ) or ((source=="clavier") and (key==5) ):
                 update=True
                 STATE=1
             if  ((source=="IR") and (key==0) ):
