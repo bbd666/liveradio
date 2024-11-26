@@ -20,7 +20,15 @@ now=datetime.now()
 lastnow=datetime.now()
 update=True       
 
-
+liste=os.listdir("/home/pierre/Documents")
+                liste_melodies=[]
+                for f in liste:
+                    extension = os.path.splitext(f)[1]
+                    if ( (extension==".mp3") or (extension==".wav") ):
+                        liste_melodies.append(f)
+                ST_melodies=[4,0,0,0]
+                
+                
 def scan_wifis(ssids):
     networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
     networks = networks.decode('ascii')
@@ -239,8 +247,8 @@ ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
 ST2_param=[4,0,0,0]
 ST2_menu=liste_lbl
-ST3_param=[3,0,0,0]
-ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE"]
+ST3_param=[4,0,0,0]
+ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
 
@@ -272,7 +280,7 @@ try:
     now=datetime.now()
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
-            player.set_mrl(liste_url[alarm_source])
+            player.set_mrl(alarm_source)
             player.play()   
     
     match STATE:
@@ -385,6 +393,9 @@ try:
             if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=32
+            if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=33
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=1 
@@ -462,7 +473,30 @@ try:
                 update=True                
                 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                alarm_source=ST2_param[3]
+                alarm_source=liste_url(ST2_param[3])
+
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=3            
+
+     case 33:#menus selection source alarme
+            if update:
+                init_menu(ST_melodies,liste_melodies)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST_melodies[3]=ST_melodies[3]+1
+                if ST_melodies[3]>len(liste_melodies)-1:
+                    ST_melodies[3]=0
+                update=True
+                
+            if ( (source=="IR") and (key==41) ) :
+                ST_melodies[3]=ST_melodies[3]-1
+                if ST_melodies[3]<0:
+                    ST_melodies[3]=len(liste_melodies)-1
+                update=True                
+                
+            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                alarm_source=liste_melodies(ST_melodies[3])
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
