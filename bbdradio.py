@@ -301,8 +301,7 @@ try:
             
             
             if ( (source=="IR") and ((key==3) or (key==49)) ) or ((source=="clavier") and (key==5) ):
-                update=True
-                
+                update=True                
                 STATE=1
                 
             if  ((source=="IR") and (key==0) ):
@@ -358,12 +357,10 @@ try:
                     
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=2
                 
             if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=3         
                 
             if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
@@ -375,11 +372,9 @@ try:
                         usb_liste.append(f)
                 ST_USB=[4,0,0,0]
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=4
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                ROTARY_param[3]=volume
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
@@ -429,7 +424,6 @@ try:
                 player.audio_set_volume(volume)
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                last_rotary_position=ROTARY_param[3]
                 STATE=1            
                 update=True
                 
@@ -473,18 +467,15 @@ try:
                 STATE=31     
                 
             if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                update=True
-                last_rotary_position=ROTARY_param[3]
-                STATE=32
+               update=True
+               STATE=32
                 
             if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=33
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=1 
 
      case 30:#menus activation alarme
@@ -582,7 +573,6 @@ try:
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=3            
 
      case 33:#menus selection melodie
@@ -618,7 +608,6 @@ try:
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
-                last_rotary_position=ROTARY_param[3]
                 STATE=3            
 
      case 4:#menus media
@@ -638,14 +627,15 @@ try:
                 update=True                
                 
            if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>0:
+                if key>last_rotary_position:
                     ST_USB[3]=ST_USB[3]+1
-                if key<0:
+                if key<last_rotary_position:
                     ST_USB[3]=ST_USB[3]-1
                 if ST_USB[3]>len(usb_liste)-1:
                     ST_USB[3]=0
                 if ST_USB[3]<0:
                     ST_USB[3]=len(usb_liste)-1
+                last_rotary_position=ROTARY_param[3]
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
@@ -674,7 +664,6 @@ try:
                 oled.show()
                 lastnow=now
             if ((source=="IR") and (key==0) ):
-                ROTARY_param[3]=volume
                 STATE=0
  
 except KeyboardInterrupt:
