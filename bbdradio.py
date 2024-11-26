@@ -335,6 +335,10 @@ try:
             if ( ((source=="IR") and (key==stop)) or ((source=="clavier") and (key==stop)) ) :
                 if player.is_playing():
                     player.stop()
+                    
+            if ( ((source=="IR") and (key==pause)) or ((source=="clavier") and (key==pause)) ) :
+                if player.is_playing():
+                    player.pause()
                 
      case 1:#menus principaux
             if update==True:
