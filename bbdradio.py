@@ -245,7 +245,7 @@ def set_hour(arg):
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
-ST2_param=[4,0,0,0]
+ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
 ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
@@ -675,7 +675,7 @@ except KeyboardInterrupt:
     config.set('ALARM', 'SET',str(alarm_set) )
     config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
     config.set('ALARM', 'MIN',str(alarm_clck_min) )
-    config.set('ALARM', 'SOURCE',str(alarm_source) )
+    config.set('ALARM', 'SOURCE',alarm_source )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
          
