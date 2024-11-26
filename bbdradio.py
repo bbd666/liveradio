@@ -254,6 +254,7 @@ ST100_menu=[]
 
 STATE=0
 digit_sel=0
+ROTARY_param[3]=volume
 
 try:
  while True:
@@ -299,9 +300,13 @@ try:
                 lastnow=now
             if ( (source=="IR") and ((key==3) or (key==49)) ) or ((source=="clavier") and (key==5) ):
                 update=True
+                ROTARY_param[3]=0
                 STATE=1
             if  ((source=="IR") and (key==0) ):
                 STATE=100
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                volume=min(max(key+100,0),200)
+                player.audio_set_volume(volume)
                  
      case 1:#menus principaux
             if update==True:
@@ -312,15 +317,34 @@ try:
                 if ST1_param[3]>len(ST1_menu)-1:
                     ST1_param[3]=0
                 update=True
+                
             if ( (source=="IR") and (key==41) ) :
                 ST1_param[3]=ST1_param[3]-1
+                if ST1_param[3]<0:
+                    ST1_param[3]=len(ST1_menu)-1
                 update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST1_param[3]=ST1_param[3]+1
+                if key<0:
+                    ST1_param[3]=ST1_param[3]-1
+                if ST1_param[3]>len(ST1_menu)-1:
+                    ST1_param[3]=0
+                if ST1_param[3]<0:
+                    ST1_param[3]=len(ST1_menu)-1
+                update=True
+                    
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
+                ROTARY_param[3]=0
                 STATE=2
+                
             if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=3            
+                ROTARY_param[3]=0
+                STATE=3         
+                
             if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 liste=os.listdir("D:/")
                 usb_liste=[]
@@ -330,9 +354,13 @@ try:
                         usb_liste.append(f)
                 ST_USB=[4,0,0,0]
                 update=True
+                ROTARY_param[3]=0
                 STATE=4
+                
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                ROTARY_param[3]=volume
                 STATE=0   
+                
             if  ((source=="IR") and (key==0) ):
                 STATE=100
   
@@ -345,29 +373,46 @@ try:
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
                 update=True
+                
             if ( (source=="IR") and (key==41) ) :
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 update=True
                 
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST2_param[3]=ST2_param[3]+1
+                if key<0:
+                    ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                update=True
+
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
                 player.play()
+                
             if ( (source=="IR") and (key==43) ) :
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
+                
             if ( (source=="IR") and (key==51) ) :
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
+                
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                ROTARY_param[3]=0
                 STATE=1            
                 update=True
+                
             if ((source=="IR") and (key==0)):
-               STATE=100
+                STATE=100
   
      case 3:#menus settings alarme
             if update:
@@ -383,21 +428,40 @@ try:
                 if ST3_param[3]<0:
                     ST3_param[3]=len(ST3_menu)-1
                 update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST3_param[3]=ST3_param[3]+1
+                if key<0:
+                    ST3_param[3]=ST3_param[3]-1
+                if ST3_param[3]>len(ST3_menu)-1:
+                    ST3_param[3]=0
+                if ST3_param[3]<0:
+                    ST3_param[3]=len(ST3_menu)-1
+                update=True
+
             if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=30
+                
             if (ST3_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 digit_sel=0
                 STATE=31     
+                
             if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
+                ROTARY_param[3]=0
                 STATE=32
+                
             if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
+                ROTARY_param[3]=0
                 STATE=33
+                
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
+                ROTARY_param[3]=0
                 STATE=1 
 
      case 30:#menus activation alarme
@@ -414,7 +478,9 @@ try:
             
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
-            STATE=3                
+            ROTARY_param[3]=0
+            STATE=3               
+            
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             if alarm_set==1:
                 alarm_set=0 
@@ -425,13 +491,17 @@ try:
      case 31:#menus reglage alarme
         if update:
             h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
-            set_hour(h) 
+            set_hour(h)
+            
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
-            STATE=3                
+            ROTARY_param[3]=0
+            STATE=3       
+            
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             digit_sel=(digit_sel+1)%4
             update=True
+            
         if ( (source=="IR") and (key==41) ) :
             match digit_sel:
              case 0:
@@ -443,6 +513,7 @@ try:
              case 3:
                 alarm_clck_min=min(alarm_clck_min+1,59)
             update=True
+            
         if ( (source=="IR") and (key==57) ) :
             match digit_sel:
              case 0:
@@ -453,9 +524,8 @@ try:
                 alarm_clck_min=max(alarm_clck_min-10,0)
              case 3:
                 alarm_clck_min=max(alarm_clck_min-1,0)                
-            update=True                
-      #  if ( (source=="IR") and (key==41) ) :
-            
+            update=True      
+                        
      case 32:#menus selection source alarme
             if update:
                 init_menu(ST2_param,ST2_menu)
@@ -472,14 +542,26 @@ try:
                     ST2_param[3]=len(ST2_menu)-1
                 update=True                
                 
+           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST2_param[3]=ST2_param[3]+1
+                if key<0:
+                    ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                update=True
+
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 alarm_source=liste_url(ST2_param[3])
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
+                ROTARY_param[3]=0
                 STATE=3            
 
-     case 33:#menus selection source alarme
+     case 33:#menus selection melodie
             if update:
                 init_menu(ST_melodies,liste_melodies)
 
@@ -495,11 +577,23 @@ try:
                     ST_melodies[3]=len(liste_melodies)-1
                 update=True                
                 
+           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST_melodies[3]=ST_melodies[3]+1
+                if key<0:
+                    ST_melodies[3]=ST_melodies[3]-1
+                if ST_melodies[3]>len(liste_melodies)-1:
+                    ST_melodies[3]=0
+                if ST_melodies[3]<0:
+                    ST_melodies[3]=len(liste_melodies)-1
+                update=True
+
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 alarm_source=liste_melodies(ST_melodies[3])
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
+                ROTARY_param[3]=0
                 STATE=3            
 
      case 4:#menus media
@@ -518,6 +612,17 @@ try:
                     ST_USB[3]=len(usb_liste)-1
                 update=True                
                 
+           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>0:
+                    ST_USB[3]=ST_USB[3]+1
+                if key<0:
+                    ST_USB[3]=ST_USB[3]-1
+                if ST_USB[3]>len(usb_liste)-1:
+                    ST_USB[3]=0
+                if ST_USB[3]<0:
+                    ST_USB[3]=len(usb_liste)-1
+                update=True
+
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 url=usb_liste[ST_USB[3]]
                 player.set_mrl(url)
@@ -544,6 +649,7 @@ try:
                 oled.show()
                 lastnow=now
             if ((source=="IR") and (key==0) ):
+                ROTARY_param[3]=volume
                 STATE=0
  
 except KeyboardInterrupt:
