@@ -21,12 +21,12 @@ lastnow=datetime.now()
 update=True       
 
 liste=os.listdir("/home/pierre/Documents")
-                liste_melodies=[]
-                for f in liste:
-                    extension = os.path.splitext(f)[1]
-                    if ( (extension==".mp3") or (extension==".wav") ):
-                        liste_melodies.append(f)
-                ST_melodies=[4,0,0,0]
+liste_melodies=[]
+for f in liste:
+    extension = os.path.splitext(f)[1]
+    if ( (extension==".mp3") or (extension==".wav") ):
+        liste_melodies.append(f)
+ST_melodies=[4,0,0,0]
                 
                 
 def scan_wifis(ssids):
@@ -154,7 +154,7 @@ channel_ini=int(config['RADIO SETTINGS']['index'])
 alarm_set=int(config['ALARM']['SET'])
 alarm_clck_hour=int(config['ALARM']['HOUR'])
 alarm_clck_min=int(config['ALARM']['MIN'])
-alarm_source=int(config['ALARM']['SOURCE'])
+alarm_source=config['ALARM']['SOURCE']
 url=liste_url[channel_ini]
 
 oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
@@ -208,7 +208,7 @@ def init_menu(arg,items):
     oled.image(image_blanche)
     oled.show()
     update=False
-    
+     
 def sound_box(arg):
     global image_blanche
     global width
@@ -301,7 +301,7 @@ try:
                 lastnow=now
             
             
-            if ( (source=="IR") and ((key==3) or (key==49)) ) or ((source=="clavier") and (key==5) ):
+            if  (source=="IR") and ((key==3) or (key==49))  :
                 update=True                
                 STATE=1
                 
@@ -316,7 +316,6 @@ try:
                 sound_box(volume)
                 player.audio_set_volume(volume)
                 last_rotary_position=ROTARY_param[3]
-
                 
             if ( (source=="IR") and (key==43) ) :
                 volume=min(volume+5,200)
@@ -328,7 +327,7 @@ try:
                 sound_box(volume)
                 player.audio_set_volume(volume)
 
-            if ( ((source=="IR") and (key==play/pause)) or ((source=="clavier") and (key==play/pause)) ) :
+            if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
                 if not(player.is_playing()):
                     player.play()
                 else:
@@ -563,7 +562,7 @@ try:
                     ST2_param[3]=len(ST2_menu)-1
                 update=True                
                 
-           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -576,7 +575,7 @@ try:
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                alarm_source=liste_url(ST2_param[3])
+                alarm_source=liste_url[ST2_param[3]]
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
@@ -598,7 +597,7 @@ try:
                     ST_melodies[3]=len(liste_melodies)-1
                 update=True                
                 
-           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
                 if key>last_rotary_position:
                     ST_melodies[3]=ST_melodies[3]+1
                 if key<last_rotary_position:
@@ -611,7 +610,7 @@ try:
                 update=True
 
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                alarm_source=liste_melodies(ST_melodies[3])
+                alarm_source=liste_melodies[ST_melodies[3]]
 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
@@ -633,7 +632,7 @@ try:
                     ST_USB[3]=len(usb_liste)-1
                 update=True                
                 
-           if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
                 if key>last_rotary_position:
                     ST_USB[3]=ST_USB[3]+1
                 if key<last_rotary_position:
