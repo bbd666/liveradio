@@ -173,6 +173,7 @@ image = Image.open("logo.jpg")
 image_r = image.resize((width,height), Image.LANCZOS)
 image_bw = image_r.convert("1")
 oled.image(image_bw)
+draw=ImageDraw.Draw(image_blanche)
 
 player = vlc.MediaPlayer()
 player.set_mrl(url)
@@ -194,6 +195,8 @@ def init_menu(arg,items):
     global width
     global height
     global oled
+    global draw
+    image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
     arg[1]=arg[3]//arg[0]
     arg[2]=arg[3]%arg[0]
@@ -214,6 +217,8 @@ def sound_box(arg):
     global width
     global height
     global oled
+    global draw
+    image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
     space=2
     draw.rectangle((round(width/4), round(height/2-5), round(3*width/4),  round(height/2+5)), outline=1, fill=0)
@@ -227,6 +232,7 @@ def set_hour(arg):
     global width
     global height
     global oled
+    global draw
     largeur=5
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
@@ -298,8 +304,7 @@ try:
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
                 oled.image(image_bw)
                 oled.show()
-                lastnow=now
-            
+                lastnow=now            
             
             if  (source=="IR") and ((key==3) or (key==49))  :
                 update=True                
@@ -326,7 +331,7 @@ try:
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
-
+ 
             if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
                 if not(player.is_playing()):
                     player.play()
@@ -417,17 +422,20 @@ try:
             if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
+                channel_ini=ST2_param[3]
                 player.play()
                 
             if ( (source=="IR") and (key==43) ) :
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
+                update=True
                 
             if ( (source=="IR") and (key==51) ) :
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
+                update=True
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=1            
