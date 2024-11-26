@@ -282,10 +282,11 @@ try:
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
-            player.play()   
+            player.play()
+            STATE=0
     
     match STATE:
-     case 0:
+     case 0:#ecran d'accueil
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
