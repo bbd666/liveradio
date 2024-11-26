@@ -326,7 +326,15 @@ try:
             if ( (source=="IR") and (key==51) ) :
                 volume=max(volume-5,0)
                 sound_box(volume)
-                player.audio_set_volume(volume)     
+                player.audio_set_volume(volume)
+
+            if ( ((source=="IR") and (key==play)) or ((source=="clavier") and (key==play)) ) :
+                if not(player.is_playing()):
+                    player.play()
+                    
+            if ( ((source=="IR") and (key==stop)) or ((source=="clavier") and (key==stop)) ) :
+                if player.is_playing():
+                    player.stop()
                 
      case 1:#menus principaux
             if update==True:
