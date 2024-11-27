@@ -385,7 +385,7 @@ try:
                 update=True
                 STATE=4
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
@@ -441,6 +441,9 @@ try:
                 STATE=1            
                 update=True
                 
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
             if ((source=="IR") and (key==0)):
                 STATE=100
   
@@ -491,6 +494,9 @@ try:
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=1 
+                
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
 
      case 30:#menus activation alarme
         if update:
@@ -515,6 +521,9 @@ try:
             else:
                 alarm_set=1
             update=True
+            
+        if ( (source=="IR") and (key==3) )  : 
+            STATE=0   
             
      case 31:#menus reglage alarme
         if update:
@@ -553,7 +562,10 @@ try:
              case 3:
                 alarm_clck_min=max(alarm_clck_min-1,0)                
             update=True      
-                        
+ 
+        if ( (source=="IR") and (key==3) )  : 
+            STATE=0   
+ 
      case 32:#menus selection source alarme
             if update:
                 init_menu(ST2_param,ST2_menu)
@@ -589,6 +601,9 @@ try:
                 update=True
                 STATE=3            
 
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
      case 33:#menus selection melodie
             if update:
                 init_menu(ST_melodies,liste_melodies)
@@ -623,6 +638,9 @@ try:
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=3            
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
 
      case 4:#menus media
             if update:
@@ -660,6 +678,9 @@ try:
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=1 
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
                 
      case 100:#écran de veille
             now=datetime.now()
