@@ -385,7 +385,7 @@ try:
                 update=True
                 STATE=4
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
@@ -441,6 +441,9 @@ try:
                 STATE=1            
                 update=True
                 
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
             if ((source=="IR") and (key==0)):
                 STATE=100
   
@@ -495,6 +498,9 @@ try:
             if  ((source=="IR") and (key==0) ):
                 STATE=100
 
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
      case 30:#menus activation alarme
         if update:
             draw=ImageDraw.Draw(image_blanche)
@@ -522,6 +528,9 @@ try:
         if  ((source=="IR") and (key==0) ):
             STATE=100
 
+        if ( (source=="IR") and (key==3) )  : 
+            STATE=0   
+            
      case 31:#menus reglage alarme
         if update:
             h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
@@ -562,7 +571,10 @@ try:
                         
         if  ((source=="IR") and (key==0) ):
             STATE=100
-
+ 
+        if ( (source=="IR") and (key==3) )  : 
+            STATE=0   
+ 
      case 32:#menus selection source alarme
             if update:
                 init_menu(ST2_param,ST2_menu)
@@ -600,6 +612,9 @@ try:
 
             if  ((source=="IR") and (key==0) ):
                 STATE=100
+                
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
 
      case 33:#menus selection melodie
             if update:
@@ -639,6 +654,9 @@ try:
             if  ((source=="IR") and (key==0) ):
                 STATE=100
                 
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
      case 4:#menus media
             if update:
                 init_menu(ST_USB,usb_liste)
@@ -675,6 +693,9 @@ try:
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
                 STATE=1 
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
                 STATE=100
