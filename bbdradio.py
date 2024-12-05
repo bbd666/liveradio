@@ -248,6 +248,24 @@ def set_hour(arg):
     oled.image(image_blanche)
     oled.show()
     update=False    
+
+def save_params():
+    global volume
+    global channel_ini
+    global alarm_set
+    global alarm_clck_hour
+    global alarm_clck_min
+    global alarm_source
+    sind=str(volume)
+    schannel=str(channel_ini)
+    config.set('RADIO SETTINGS', 'INDEX', schannel)
+    config.set('RADIO SETTINGS', 'VOLUME',sind )
+    config.set('ALARM', 'SET',str(alarm_set) )
+    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
+    config.set('ALARM', 'MIN',str(alarm_clck_min) )
+    config.set('ALARM', 'SOURCE',alarm_source )
+    with open('data.ini', 'w') as configfile:   
+        config.write(configfile)
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
@@ -311,6 +329,7 @@ try:
                 STATE=1
                 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
                 
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
@@ -389,6 +408,7 @@ try:
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
   
      case 2:#menus web radios
@@ -445,6 +465,7 @@ try:
                 STATE=0   
 
             if ((source=="IR") and (key==0)):
+                save=True
                 STATE=100
   
      case 3:#menus settings alarme
@@ -496,6 +517,7 @@ try:
                 STATE=1 
                 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
 
             if ( (source=="IR") and (key==3) )  : 
@@ -526,7 +548,8 @@ try:
             update=True
             
         if  ((source=="IR") and (key==0) ):
-            STATE=100
+                save=True
+                STATE=100
 
         if ( (source=="IR") and (key==3) )  : 
             STATE=0   
@@ -570,7 +593,8 @@ try:
             update=True      
                         
         if  ((source=="IR") and (key==0) ):
-            STATE=100
+                save=True
+                STATE=100
  
         if ( (source=="IR") and (key==3) )  : 
             STATE=0   
@@ -611,6 +635,7 @@ try:
                 STATE=3            
 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
                 
             if ( (source=="IR") and (key==3) )  : 
@@ -652,6 +677,7 @@ try:
                 STATE=3            
 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
                 
             if ( (source=="IR") and (key==3) )  : 
@@ -698,9 +724,13 @@ try:
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
+                save=True
                 STATE=100
 
      case 100:#écran de veille
+            if save:
+                save_params()
+                save=False
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
@@ -720,16 +750,7 @@ try:
                 STATE=0
  
 except KeyboardInterrupt:
-    sind=str(volume)
-    schannel=str(channel_ini)
-    config.set('RADIO SETTINGS', 'INDEX', schannel)
-    config.set('RADIO SETTINGS', 'VOLUME',sind )
-    config.set('ALARM', 'SET',str(alarm_set) )
-    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
-    config.set('ALARM', 'MIN',str(alarm_clck_min) )
-    config.set('ALARM', 'SOURCE',alarm_source )
-    with open('data.ini', 'w') as configfile:   
-        config.write(configfile)
+    save_params()
          
         
     
