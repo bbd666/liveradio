@@ -306,7 +306,7 @@ try:
                 oled.show()
                 lastnow=now            
             
-            if  (source=="IR") and ((key==3) or (key==49))  :
+            if  ((source=="IR") and ((key==3) or (key==49)) or ( (source=="clavier") and (key==5) ))  :
                 update=True                
                 STATE=1
                 
