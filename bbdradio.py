@@ -174,8 +174,8 @@ for i in range(1,int(nb)+1):
   liste_lbl.append(config['STREAMS']['LBL'+str(i)])
 volume=int(config['RADIO SETTINGS']['volume'])
 channel_ini=int(config['RADIO SETTINGS']['index'])
-ssid=config['WIFI']['SSID'])
-passwd=config['WIFI']['PASSWD'])
+ssid=config['WIFI']['SSID']
+passwd=config['WIFI']['PASSWD']
 alarm_set=int(config['ALARM']['SET'])
 alarm_clck_hour=int(config['ALARM']['HOUR'])
 alarm_clck_min=int(config['ALARM']['MIN'])
@@ -286,7 +286,7 @@ def set_passwd(arg):
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
     for i in range(len(arg)):
-        draw.text(((5+5*i)%(width-5),30+10*(5+5*i)//(width-5)),str(arg[i]),font=font4,size=1,fill=1)  
+        draw.text(((5+10*i)%(width-10),5+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
     oled.image(image_blanche)
     oled.show()
     update=False     
@@ -781,7 +781,7 @@ try:
             if update:
                 s=scan_wifi()
                 ST5_menu=[]
-                for i in range(0,len(s)-1):
+                for i in range(0,len(s)):
                     w=s[i].split(":")
                     ST5_menu.append(w[0])
                 init_menu(ST5_param,ST5_menu)
@@ -811,6 +811,7 @@ try:
 
             if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 update=True
+                pwd=passwd
                 ssid=ST5_menu[ST3_param[3]]
                 STATE=50                
                 
@@ -827,7 +828,7 @@ try:
 
      case 50:#menu wifi passwd
         if update:
-            set_passwd(passwd)
+           set_passwd(pwd)
             
         if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
             update=True
@@ -835,30 +836,35 @@ try:
             STATE=5       
             
         if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            passwd=passwd+"-"
+            pwd=pwd+"-"
+            update=True
+          
+        if ( (source=="IR") and (key==40) ) : #touche square
+            pwd=pwd[:-1]  
             update=True
             
         if ( (source=="IR") and (key==41) ) : #touche UP
-            r=ord(len(passwd)-1)+1
+            r=ord(pwd[len(pwd)-1])+1
             if r>126:
                 r=32
             else:
                 if r<32:
                     r=126
-            passwd[len(passwd)-1)]=chr(r)
+            pwd=pwd[:len(pwd)-1]+chr(r)
             update=True
             
         if ( (source=="IR") and (key==57) ) : #touche DOWN
-            r=ord(len(passwd)-1)-1
+            r=ord(pwd[len(pwd)-1])-1
             if r>126:
                 r=32
             else:
                 if r<32:
                     r=126
-            passwd[len(passwd)-1)]=chr(r)
+            pwd=pwd[:len(pwd)-1]+chr(r)
             update=True
                         
         if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+            passwd=pwd
             connect_to(ssid,passwd)
 
         if  ((source=="IR") and (key==0) ):
