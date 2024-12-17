@@ -16,7 +16,7 @@ import subprocess
 #from subprocess import Popen, STDOUT, PIPE
 
 os.system('sh remote.sh')
-
+ 
 now=datetime.now()
 lastnow=datetime.now()
 update=True       
@@ -370,7 +370,7 @@ try:
                 oled.show()
                 lastnow=now            
             
-            if  ((source=="IR") and ((key==3) or (key==49))) or ((source=="clavier") and (key==6)):
+            if  ((source=="IR") and ((key==3) or (key==49)) or ( (source=="clavier") and (key==5) ))  :
                 update=True                
                 STATE=1
                 
