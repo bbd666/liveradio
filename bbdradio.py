@@ -12,7 +12,8 @@ import adafruit_ssd1306
 import evdev
 from datetime import datetime
 import os
-#import subprocess
+import subprocess
+#from subprocess import Popen, STDOUT, PIPE
 
 os.system('sh remote.sh')
 
@@ -27,20 +28,42 @@ for f in liste:
     if ( (extension==".mp3") or (extension==".wav") ):
         liste_melodies.append(f)
 ST_melodies=[4,0,0,0]
+
+ssid=""
+passwd=""
                 
                 
-def scan_wifis(ssids):
-    networks = subprocess.check_output(['netsh', 'wlan', 'show', 'network'])
-    networks = networks.decode('ascii')
-    networks = networks.replace('\r', '')
-    ssid = networks.split('\n')
-    sid = ssid[4:]
-    ssids = []
-    x = 0
-    while x < len(ssid):
-        if x % 5 == 0:
-            ssids.append(ssid[x])
-        x += 1
+def what_wifi():
+    process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
+    if process.returncode == 0:
+        return process.stdout.decode('utf-8').strip().split(':')[1]
+    else:
+        return ''
+
+def is_connected_to(ssid: str):
+    return what_wifi() == ssid   
+
+def scan_wifi():
+    process = subprocess.run(['nmcli', '-t', '-f', 'SSID,SECURITY,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
+    if process.returncode == 0:
+        return process.stdout.decode('utf-8').strip().split('\n')
+    else:
+        return []
+        
+def is_wifi_available(ssid: str):
+    return ssid in [x.split(':')[0] for x in scan_wifi()]
+
+def connect_to(ssid: str, password: str):
+    if not is_wifi_available(ssid):
+        return False
+    subprocess.call(['nmcli', 'd', 'wifi', 'connect', ssid, 'password', password])
+    return is_connected_to(ssid)
+
+def connect_to_saved(ssid: str):
+    if not is_wifi_available(ssid):
+        return False
+    subprocess.call(['nmcli', 'c', 'up', ssid])
+    return is_connected_to(ssid)
    
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -151,6 +174,8 @@ for i in range(1,int(nb)+1):
   liste_lbl.append(config['STREAMS']['LBL'+str(i)])
 volume=int(config['RADIO SETTINGS']['volume'])
 channel_ini=int(config['RADIO SETTINGS']['index'])
+ssid=config['WIFI']['SSID'])
+passwd=config['WIFI']['PASSWD'])
 alarm_set=int(config['ALARM']['SET'])
 alarm_clck_hour=int(config['ALARM']['HOUR'])
 alarm_clck_min=int(config['ALARM']['MIN'])
@@ -249,6 +274,23 @@ def set_hour(arg):
     oled.show()
     update=False    
 
+def set_passwd(arg):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    global draw
+    largeur=5
+    hauteur=6
+    draw=ImageDraw.Draw(image_blanche)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)          
+    for i in range(len(arg)):
+        draw.text(((5+5*i)%(width-5),30+10*(5+5*i)//(width-5)),str(arg[i]),font=font4,size=1,fill=1)  
+    oled.image(image_blanche)
+    oled.show()
+    update=False     
+
 def save_params():
     global volume
     global channel_ini
@@ -264,17 +306,21 @@ def save_params():
     config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
     config.set('ALARM', 'MIN',str(alarm_clck_min) )
     config.set('ALARM', 'SOURCE',alarm_source )
+    config.set('WIFI', 'SSID',ssid )
+    config.set('WIFI', 'PASSWD',passwd )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","MEDIA USB"]
+ST1_menu=["WEB STATIONS","ALARME","WIFI","MEDIA USB"]
 ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
 ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
+ST5_param=[4,0,0,0]
+ST5_menu=[]
 
 STATE=0
 digit_sel=0
@@ -387,13 +433,17 @@ try:
                     
             if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=2
+                STATE=2         #web radio
                 
             if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=3         
+                STATE=3         #alarm
                 
             if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                STATE=5         #wifi                              
+                
+            if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 liste=os.listdir("D:/")
                 usb_liste=[]
                 for f in liste:
@@ -402,7 +452,7 @@ try:
                         usb_liste.append(f)
                 ST_USB=[4,0,0,0]
                 update=True
-                STATE=4
+                STATE=4         #media
                 
             if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
                 STATE=0   
@@ -727,6 +777,97 @@ try:
                 save=True
                 STATE=100
 
+     case 5:#menu wifi
+            if update:
+                s=scan_wifi()
+                ST5_menu=[]
+                for i in range(0,len(s)-1):
+                    w=s[i].split(":")
+                    ST5_menu.append(w[0])
+                init_menu(ST5_param,ST5_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST5_param[3]=ST5_param[3]+1
+                if ST5_param[3]>len(ST5_menu)-1:
+                    ST5_param[3]=0
+                update=True
+            if ( (source=="IR") and (key==41) ) :
+                ST5_param[3]=ST5_param[3]-1
+                if ST5_param[3]<0:
+                    ST5_param[3]=len(ST5_menu)-1
+                update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    ST5_param[3]=ST5_param[3]+1
+                if key<last_rotary_position:
+                    ST5_param[3]=ST5_param[3]-1
+                if ST5_param[3]>len(ST5_menu)-1:
+                    ST5_param[3]=0
+                if ST5_param[3]<0:
+                    ST5_param[3]=len(ST5_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                update=True
+                ssid=ST5_menu[ST3_param[3]]
+                STATE=50                
+                
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=1 
+                
+            if  ((source=="IR") and (key==0) ):
+                save=True
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
+     case 50:#menu wifi passwd
+        if update:
+            set_passwd(passwd)
+            
+        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+            update=True
+            last_rotary_position=ROTARY_param[3]
+            STATE=5       
+            
+        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            passwd=passwd+"-"
+            update=True
+            
+        if ( (source=="IR") and (key==41) ) : #touche UP
+            r=ord(len(passwd)-1)+1
+            if r>126:
+                r=32
+            else:
+                if r<32:
+                    r=126
+            passwd[len(passwd)-1)]=chr(r)
+            update=True
+            
+        if ( (source=="IR") and (key==57) ) : #touche DOWN
+            r=ord(len(passwd)-1)-1
+            if r>126:
+                r=32
+            else:
+                if r<32:
+                    r=126
+            passwd[len(passwd)-1)]=chr(r)
+            update=True
+                        
+        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+            connect_to(ssid,passwd)
+
+        if  ((source=="IR") and (key==0) ):
+                save=True
+                STATE=100
+ 
+        if ( (source=="IR") and (key==3) )  : 
+            STATE=0   
+ 
      case 100:#écran de veille
             if save:
                 save_params()
