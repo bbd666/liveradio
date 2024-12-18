@@ -285,8 +285,12 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
+    s=chr(708)+","+chr(709)+" pour modifier, 'Select' pour ajouter"
+    draw.text((5,5),str(arg[i]),font=font100,size=1,fill=1)  
+    s=chr(2011)+" pour supprimer, "+chr(707)+"|| pour valider"
+    draw.text((5,15),str(arg[i]),font=font100,size=1,fill=1)  
     for i in range(len(arg)):
-        draw.text(((5+10*i)%(width-10),5+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
+        draw.text(((5+10*i)%(width-10),30+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
     oled.image(image_blanche)
     oled.show()
     update=False     
