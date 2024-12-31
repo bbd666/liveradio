@@ -14,12 +14,14 @@ from datetime import datetime
 import os
 import subprocess
 #from subprocess import Popen, STDOUT, PIPE
+from pathlib import Path
 
 os.system('sh remote.sh')
  
 now=datetime.now()
 lastnow=datetime.now()
-update=True       
+update=True 
+update_usb=True      
 
 liste=os.listdir("/home/pierre/Documents")
 liste_melodies=[]
@@ -31,6 +33,10 @@ ST_melodies=[4,0,0,0]
 
 ssid=""
 passwd=""
+
+usb_path = "/dev/sda1"
+mount_path = "/home/pierre/usb_disk_mount"
+mp3_files=[]
                 
                 
 def what_wifi():
@@ -314,6 +320,19 @@ def save_params():
     config.set('WIFI', 'PASSWD',passwd )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
+        
+def scan_USB_files():
+    global update_usb
+    global usb_path
+    global mount_path 
+    global mp3_files
+    audio_ext = [".mp3" ,".ogg", ".flac", ".wav"]
+    subprocess.run(["sudo", "mount", usb_path, mount_path])
+    p = Path(mount_path)
+    mp3_files=[]
+    if p.is_mount():
+        mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
+    update_usb=False
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","WIFI","MEDIA USB"]
@@ -325,6 +344,8 @@ ST100_param=[0,0,0,0]
 ST100_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
+ST6_param=[4,0,0,0]
+ST6_menu=[]
 
 STATE=0
 digit_sel=0
@@ -878,6 +899,60 @@ try:
         if ( (source=="IR") and (key==3) )  : 
             STATE=0   
  
+     case 6:#menu USB
+            if update_usb:
+                s=scan_USB_files()
+                ST6_menu=[]
+                for i in range(0,len(mp3_files)):
+                    ST6_menu.append(mp3_files[i].name)
+            if update:
+                init_menu(ST6_param,ST6_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST6_param[3]=ST6_param[3]+1
+                if ST6_param[3]>len(ST6_menu)-1:
+                    ST6_param[3]=0
+                update=True
+            if ( (source=="IR") and (key==41) ) :
+                ST6_param[3]=ST6_param[3]-1
+                if ST6_param[3]<0:
+                    ST6_param[3]=len(ST6_menu)-1
+                update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    ST6_param[3]=ST6_param[3]+1
+                if key<last_rotary_position:
+                    ST6_param[3]=ST6_param[3]-1
+                if ST6_param[3]>len(ST6_menu)-1:
+                    ST6_param[3]=0
+                if ST6_param[3]<0:
+                    ST6_param[3]=len(ST6_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                url=mp3_files[ST6_param[3]]
+                player.set_mrl(url)
+                player.play()
+                
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update_usb=True
+                update=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=1 
+                
+            if  ((source=="IR") and (key==0) ):
+                update_usb=True
+                save=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                update_usb=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=0   
+
      case 100:#écran de veille
             if save:
                 save_params()
