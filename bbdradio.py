@@ -215,6 +215,7 @@ font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14
 font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
 font4 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 10)
 font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
+font200 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 7)
        
 IR_param=[-100,time.perf_counter(),0,0]
 ROTARY_param=[0,0,0,0,-1]
@@ -291,10 +292,10 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s=chr(708)+","+chr(709)+" pour modifier, 'Select' pour ajouter"
-    draw.text((5,5),str(arg[i]),font=font100,size=1,fill=1)  
-    s=chr(2011)+" pour supprimer, "+chr(707)+"|| pour valider"
-    draw.text((5,15),str(arg[i]),font=font100,size=1,fill=1)  
+    s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
+    draw.text((5,5),s,font=font100,size=1,fill=1)  
+    s=chr(1)+": suppr, "+">||: valid"
+    draw.text((5,15),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
         draw.text(((5+10*i)%(width-10),30+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
     oled.image(image_blanche)
