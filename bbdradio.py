@@ -344,8 +344,8 @@ ST100_param=[0,0,0,0]
 ST100_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
-ST6_param=[4,0,0,0]
-ST6_menu=[]
+ST4_param=[4,0,0,0]
+ST4_menu=[]
 
 STATE=0
 digit_sel=0
@@ -469,13 +469,6 @@ try:
                 STATE=5         #wifi                              
                 
             if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                liste=os.listdir("D:/")
-                usb_liste=[]
-                for f in liste:
-                    extension = os.path.splitext(f)[1]
-                    if ( (extension==".mp3") or (extension==".wav") ):
-                        usb_liste.append(f)
-                ST_USB=[4,0,0,0]
                 update=True
                 STATE=4         #media
                 
@@ -758,50 +751,6 @@ try:
             if ( (source=="IR") and (key==3) )  : 
                 STATE=0   
 
-     case 4:#menus media
-            if update:
-                init_menu(ST_USB,usb_liste)
-
-            if ( (source=="IR") and (key==57) ) :
-                ST_USB[3]=ST_USB[3]+1
-                if ST_USB[3]>len(usb_liste)-1:
-                    ST_USB[3]=0
-                update=True
-                
-            if ( (source=="IR") and (key==41) ) :
-                ST_USB[3]=ST_USB[3]-1
-                if ST_USB[3]<0:
-                    ST_USB[3]=len(usb_liste)-1
-                update=True                
-                
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>last_rotary_position:
-                    ST_USB[3]=ST_USB[3]+1
-                if key<last_rotary_position:
-                    ST_USB[3]=ST_USB[3]-1
-                if ST_USB[3]>len(usb_liste)-1:
-                    ST_USB[3]=0
-                if ST_USB[3]<0:
-                    ST_USB[3]=len(usb_liste)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                url=usb_liste[ST_USB[3]]
-                player.set_mrl(url)
-                player.play()
-
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                update=True
-                STATE=1 
-
-            if ( (source=="IR") and (key==3) )  : 
-                STATE=0   
-                
-            if  ((source=="IR") and (key==0) ):
-                save=True
-                STATE=100
-
      case 5:#menu wifi
             if update:
                 s=scan_wifi()
@@ -899,40 +848,40 @@ try:
         if ( (source=="IR") and (key==3) )  : 
             STATE=0   
  
-     case 6:#menu USB
+     case 4:#menu USB
             if update_usb:
                 s=scan_USB_files()
-                ST6_menu=[]
+                ST4_menu=[]
                 for i in range(0,len(mp3_files)):
-                    ST6_menu.append(mp3_files[i].name)
+                    ST4_menu.append(mp3_files[i].name)
             if update:
-                init_menu(ST6_param,ST6_menu)
+                init_menu(ST4_param,ST4_menu)
 
             if ( (source=="IR") and (key==57) ) :
-                ST6_param[3]=ST6_param[3]+1
-                if ST6_param[3]>len(ST6_menu)-1:
-                    ST6_param[3]=0
+                ST4_param[3]=ST4_param[3]+1
+                if ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
                 update=True
             if ( (source=="IR") and (key==41) ) :
-                ST6_param[3]=ST6_param[3]-1
-                if ST6_param[3]<0:
-                    ST6_param[3]=len(ST6_menu)-1
+                ST4_param[3]=ST4_param[3]-1
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
                 update=True
                 
             if ((source=="rotary") and (ROTARY_param[4]==-1)):
                 if key>last_rotary_position:
-                    ST6_param[3]=ST6_param[3]+1
+                    ST4_param[3]=ST4_param[3]+1
                 if key<last_rotary_position:
-                    ST6_param[3]=ST6_param[3]-1
-                if ST6_param[3]>len(ST6_menu)-1:
-                    ST6_param[3]=0
-                if ST6_param[3]<0:
-                    ST6_param[3]=len(ST6_menu)-1
+                    ST4_param[3]=ST4_param[3]-1
+                if ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
             if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                url=mp3_files[ST6_param[3]]
+                url=mp3_files[ST4_param[3]]
                 player.set_mrl(url)
                 player.play()
                 
