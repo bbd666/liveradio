@@ -931,8 +931,10 @@ try:
                 cmd = "ifconfig wlan0| findstr inet"
                 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT, encoding='oem')
                 output = ps.communicate()[0]
-                output = output.split(" ")
-                ST6_menu=output[1]
+                output = output.split("inet")
+                output=output[1]
+                output = output.split("netmask")
+                output=output[0]                
                 init_menu(ST6_param,ST6_menu)
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
