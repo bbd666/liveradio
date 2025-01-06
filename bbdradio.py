@@ -15,6 +15,7 @@ import os
 import subprocess
 #from subprocess import Popen, STDOUT, PIPE
 from pathlib import Path
+import re
 
 os.system('sh remote.sh')
  
@@ -343,10 +344,10 @@ ST3_param=[4,0,0,0]
 ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
-ST4_param=[4,0,0,0]
-ST4_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
+ST4_param=[4,0,0,0]
+ST4_menu=[]
 ST6_param=[4,0,0,0]
 ST6_menu=[]
 
@@ -474,7 +475,7 @@ try:
             if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=4         #media
- 
+                
             if (ST1_param[3]==4 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 STATE=6         #IP
@@ -623,7 +624,6 @@ try:
             update=True
             
         if  ((source=="IR") and (key==0) ):
-                update=True
                 save=True
                 STATE=100
 
@@ -669,7 +669,6 @@ try:
             update=True      
                         
         if  ((source=="IR") and (key==0) ):
-                update=True
                 save=True
                 STATE=100
  
@@ -847,7 +846,6 @@ try:
             update=True
                         
         if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
-            update=True
             passwd=pwd
             connect_to(ssid,passwd)
 
@@ -914,13 +912,15 @@ try:
 
      case 6:#menu IP
             if update:
-                cmd = "ifconfig wlan0| findstr inet"
-                ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT, encoding='oem')
+                cmd = "ifconfig wlan0 | grep 'inet '"
+                ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
                 output = ps.communicate()[0]
-                output = output.split("inet")
+                output= output.decode("utf-8")
+                output = re.split("inet",output)
                 output=output[1]
-                output = output.split("netmask")
-                output=output[0]                
+                output = re.split("netmask",output)
+                ST6_menu=[]
+                ST6_menu.append(output[0])
                 init_menu(ST6_param,ST6_menu)
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
