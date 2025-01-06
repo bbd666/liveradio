@@ -336,17 +336,19 @@ def scan_USB_files():
     update_usb=False
             
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","MEDIA USB"]
+ST1_menu=["WEB STATIONS","ALARME","WIFI","MEDIA USB","IP"]
 ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
 ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
-ST5_param=[4,0,0,0]
-ST5_menu=[]
 ST4_param=[4,0,0,0]
 ST4_menu=[]
+ST5_param=[4,0,0,0]
+ST5_menu=[]
+ST6_param=[4,0,0,0]
+ST6_menu=[]
 
 STATE=0
 digit_sel=0
@@ -401,6 +403,7 @@ try:
                 STATE=1
                 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
                 
@@ -474,9 +477,11 @@ try:
                 STATE=4         #media
                 
             if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
                 STATE=0   
                 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
   
@@ -531,9 +536,11 @@ try:
                 update=True
                 
             if ( (source=="IR") and (key==3) )  : 
+                update=True
                 STATE=0   
 
             if ((source=="IR") and (key==0)):
+                update=True
                 save=True
                 STATE=100
   
@@ -586,10 +593,12 @@ try:
                 STATE=1 
                 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
 
             if ( (source=="IR") and (key==3) )  : 
+                update=True
                 STATE=0   
 
      case 30:#menus activation alarme
@@ -617,10 +626,12 @@ try:
             update=True
             
         if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
 
         if ( (source=="IR") and (key==3) )  : 
+            update=True
             STATE=0   
             
      case 31:#menus reglage alarme
@@ -662,10 +673,12 @@ try:
             update=True      
                         
         if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
  
         if ( (source=="IR") and (key==3) )  : 
+            update=True
             STATE=0   
  
      case 32:#menus selection source alarme
@@ -704,10 +717,12 @@ try:
                 STATE=3            
 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
                 
             if ( (source=="IR") and (key==3) )  : 
+                update=True
                 STATE=0   
 
      case 33:#menus selection melodie
@@ -746,10 +761,12 @@ try:
                 STATE=3            
 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
                 
             if ( (source=="IR") and (key==3) )  : 
+                update=True
                 STATE=0   
 
      case 5:#menu wifi
@@ -795,10 +812,12 @@ try:
                 STATE=1 
                 
             if  ((source=="IR") and (key==0) ):
+                update=True
                 save=True
                 STATE=100
 
             if ( (source=="IR") and (key==3) )  : 
+                update=True
                 STATE=0   
 
      case 50:#menu wifi passwd
@@ -839,11 +858,13 @@ try:
             update=True
                         
         if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+            update=True
             passwd=pwd
             connect_to(ssid,passwd)
 
         if  ((source=="IR") and (key==0) ):
                 save=True
+                update=True
                 STATE=100
  
         if ( (source=="IR") and (key==3) )  : 
@@ -894,15 +915,39 @@ try:
                 
             if  ((source=="IR") and (key==0) ):
                 update_usb=True
+                update=True
                 save=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=100
 
             if ( (source=="IR") and (key==3) )  : 
                 update_usb=True
+                update=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=0   
 
+     case 6:#menu IP
+            if update:
+                cmd = "ifconfig wlan0| findstr inet"
+                ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT, encoding='oem')
+                output = ps.communicate()[0]
+                output = output.split(" ")
+                ST6_menu=output[1]
+                init_menu(ST6_param,ST6_menu)
+                
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=1 
+                
+            if  ((source=="IR") and (key==0) ):
+                update=True
+                save=True
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                update=True
+                STATE=0 
+                
      case 100:#écran de veille
             if save:
                 save_params()
