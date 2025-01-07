@@ -272,20 +272,21 @@ def will_you_load(arg):
     image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    draw.text((10,10),"Chargement de la MAJ ?",font=font3,size=1,fill=1)
-    if arg[0]=0:
-       draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
-       draw.text((30,30),"OUI",font=font3,size=1,fill=0)
-       draw.text((80,30),"NON",font=font3,size=1,fill=1)
-    else:
-       draw.rectangle((80-largeur, 40+hauteur, 110+largeur, 30-hauteur), outline=1, fill=1) 
-       draw.text((30,30),"OUI",font=font3,size=1,fill=1)
-       draw.text((80,30),"NON",font=font3,size=1,fill=0)
     if arg[1]=1:
-       draw.text((60,45),"MAJ reussie",font=font2,size=1,fill=0)
+        draw.text((60,35),"MAJ reussie",font=font2,size=1,fill=0)
     else:
         if arg[1]=2:
-            draw.text((60,45),"echec MAJ",font=font2,size=1,fill=0)    
+            draw.text((60,35),"echec MAJ",font=font2,size=1,fill=0)
+        else:
+            draw.text((10,10),"Chargement de la MAJ ?",font=font3,size=1,fill=1)
+            if arg[0]=0:
+               draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
+               draw.text((30,30),"OUI",font=font3,size=1,fill=0)
+               draw.text((80,30),"NON",font=font3,size=1,fill=1)
+            else:
+               draw.rectangle((80-largeur, 40+hauteur, 110+largeur, 30-hauteur), outline=1, fill=1) 
+               draw.text((30,30),"OUI",font=font3,size=1,fill=1)
+               draw.text((80,30),"NON",font=font3,size=1,fill=0)
     oled.image(image_blanche)
     oled.show()
     update=False
