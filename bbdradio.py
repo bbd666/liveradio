@@ -272,14 +272,14 @@ def will_you_load(arg):
     image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)
-    if arg[1]=1:
-        draw.text((60,35),"MAJ reussie",font=font2,size=1,fill=0)
+    if arg[1]==1:
+        draw.text((30,35),"MAJ reussie",font=font3,size=1,fill=1)
     else:
-        if arg[1]=2:
-            draw.text((60,35),"echec MAJ",font=font2,size=1,fill=0)
+        if arg[1]==2:
+            draw.text((30,35),"echec MAJ",font=font3,size=1,fill=1)
         else:
-            draw.text((10,10),"Chargement de la MAJ ?",font=font3,size=1,fill=1)
-            if arg[0]=0:
+            draw.text((10,10),"Chargement de la MAJ ?",font=font4,size=1,fill=1)
+            if arg[0]==0:
                draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
                draw.text((30,30),"OUI",font=font3,size=1,fill=0)
                draw.text((80,30),"NON",font=font3,size=1,fill=1)
@@ -371,11 +371,10 @@ def scan_USB_files():
 def load_config():
     global usb_path
     global mount_path 
-    global mp3_files
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
     if p.is_mount():
-        my_file = p / 'data.ini'
+        my_file = p/'data.ini'
         if my_file.is_file():
          shutil.copy(my_file,"/home/pierre/Documents/data.ini")
          return 1
@@ -383,6 +382,7 @@ def load_config():
          return 0
     else:
         return 0
+    subprocess.run(["sudo", "umount", mount_path])
    
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
@@ -936,21 +936,28 @@ try:
 
             if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 update=True
-                err=load_config()
-                if (err==1):
-                    rep[1]=1
-                    will_you_load(rep)
+                if rep[0]==0:
+                    err=load_config()
+                    if (err==1):
+                        rep[1]=1
+                        will_you_load(rep)
+                    else:
+                        rep[1]=2
+                        will_you_load(rep)
                 else:
-                    rep[1]=2
-                    will_you_load(rep)
-               
+                    STATE=1
+ 
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update_usb=True
+                update=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=1 
+ 
             if  ((source=="IR") and (key==0) ):
                 save=True
-                subprocess.run(["sudo", "umount", mount_path])
                 STATE=100
 
             if ( (source=="IR") and (key==3) )  : 
-                subprocess.run(["sudo", "umount", mount_path])
                 STATE=0   
 
      case 5:#menu wifi
