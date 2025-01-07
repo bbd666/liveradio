@@ -16,6 +16,7 @@ import subprocess
 #from subprocess import Popen, STDOUT, PIPE
 from pathlib import Path
 import re
+import shutil
 
 os.system('sh remote.sh')
  
@@ -244,7 +245,7 @@ def init_menu(arg,items):
     oled.image(image_blanche)
     oled.show()
     update=False
-     
+               
 def sound_box(arg):
     global image_blanche
     global width
@@ -258,6 +259,36 @@ def sound_box(arg):
     draw.rectangle((round(width/4+space), round(height/2-5+space),round(arg/200*width/2+width/4-space),round(height/2+5-space)), outline=1, fill=1)            
     oled.image(image_blanche)
     oled.show()
+
+def will_you_load(arg):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    global draw
+    largeur=5
+    hauteur=6
+    image_blanche = Image.new('1',(128,64))
+    draw=ImageDraw.Draw(image_blanche)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    draw.text((10,10),"Chargement de la MAJ ?",font=font3,size=1,fill=1)
+    if arg[0]=0:
+       draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
+       draw.text((30,30),"OUI",font=font3,size=1,fill=0)
+       draw.text((80,30),"NON",font=font3,size=1,fill=1)
+    else:
+       draw.rectangle((80-largeur, 40+hauteur, 110+largeur, 30-hauteur), outline=1, fill=1) 
+       draw.text((30,30),"OUI",font=font3,size=1,fill=1)
+       draw.text((80,30),"NON",font=font3,size=1,fill=0)
+    if arg[1]=1:
+       draw.text((60,45),"MAJ reussie",font=font2,size=1,fill=0)
+    else:
+        if arg[1]=2:
+            draw.text((60,45),"echec MAJ",font=font2,size=1,fill=0)    
+    oled.image(image_blanche)
+    oled.show()
+    update=False
 
 def set_hour(arg):
     global update
@@ -336,8 +367,24 @@ def scan_USB_files():
         mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
     update_usb=False
             
+def load_config():
+    global usb_path
+    global mount_path 
+    global mp3_files
+    subprocess.run(["sudo", "mount", usb_path, mount_path])
+    p = Path(mount_path)
+    if p.is_mount():
+        my_file = p / 'data.ini'
+        if my_file.is_file():
+         shutil.copy(my_file,"/home/pierre/Documents/data.ini")
+         return 1
+        else:
+         return 0
+    else:
+        return 0
+   
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","MEDIA USB","IP"]
+ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
 ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
@@ -347,7 +394,9 @@ ST100_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
 ST4_param=[4,0,0,0]
-ST4_menu=[]
+ST4_menu=["MEDIAS","MISE A JOUR"]
+ST41_param=[4,0,0,0]
+ST41_menu=[]
 ST6_param=[4,0,0,0]
 ST6_menu=[]
 
@@ -474,7 +523,7 @@ try:
                 
             if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
-                STATE=4         #media
+                STATE=4         #USB
                 
             if (ST1_param[3]==4 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
@@ -759,6 +808,150 @@ try:
             if ( (source=="IR") and (key==3) )  : 
                 STATE=0   
 
+     case 4:#menu USB
+            if update:
+                init_menu(ST4_param,ST4_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST4_param[3]=ST4_param[3]+1
+                if ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
+                update=True
+            if ( (source=="IR") and (key==41) ) :
+                ST4_param[3]=ST4_param[3]-1
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
+                update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    ST4_param[3]=ST4_param[3]+1
+                if key<last_rotary_position:
+                    ST4_param[3]=ST4_param[3]-1
+                if ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+            if (ST4_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                update_usb=True
+                STATE=41
+                
+            if (ST4_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                rep=[0,0]
+                STATE=42     
+                
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update=True
+                STATE=1 
+                
+            if  ((source=="IR") and (key==0) ):
+                save=True
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
+     case 41:#menu USB Medias
+            if update_usb:
+                s=scan_USB_files()
+                ST41_menu=[]
+                for i in range(0,len(mp3_files)):
+                    ST41_menu.append(mp3_files[i].name)
+            if update:
+                init_menu(ST41_param,ST41_menu)
+
+            if ( (source=="IR") and (key==57) ) :
+                ST41_param[3]=ST41_param[3]+1
+                if ST41_param[3]>len(ST41_menu)-1:
+                    ST41_param[3]=0
+                update=True
+            if ( (source=="IR") and (key==41) ) :
+                ST41_param[3]=ST41_param[3]-1
+                if ST41_param[3]<0:
+                    ST41_param[3]=len(ST41_menu)-1
+                update=True
+                
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    ST41_param[3]=ST41_param[3]+1
+                if key<last_rotary_position:
+                    ST41_param[3]=ST41_param[3]-1
+                if ST41_param[3]>len(ST41_menu)-1:
+                    ST41_param[3]=0
+                if ST41_param[3]<0:
+                    ST41_param[3]=len(ST41_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                url=mp3_files[ST41_param[3]]
+                player.set_mrl(url)
+                player.play()
+                
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update_usb=True
+                update=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=1 
+                
+            if  ((source=="IR") and (key==0) ):
+                update_usb=True
+                save=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                update_usb=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=0   
+
+     case 42:#menu USB MAJ
+            if update:
+                will_you_load(rep)
+
+            if ( (source=="IR") and (key==57) ) :
+                update=True
+                rep[0]=(rep[0]+1)%2
+                will_you_load(rep)
+
+            if ( (source=="IR") and (key==41) ) :
+                update=True
+                rep[0]=(rep[0]-1)%2
+                will_you_load(rep)
+               
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    rep[0]=(rep[0]+1)%2
+                if key<last_rotary_position:
+                    rep[0]=(rep[0]-1)%2
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                will_you_load(rep)
+
+            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                update=True
+                err=load_config()
+                if (err==1):
+                    rep[1]=1
+                    will_you_load(rep)
+                else:
+                    rep[1]=2
+                    will_you_load(rep)
+               
+            if  ((source=="IR") and (key==0) ):
+                save=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=0   
+
      case 5:#menu wifi
             if update:
                 s=scan_wifi()
@@ -856,60 +1049,6 @@ try:
         if ( (source=="IR") and (key==3) )  : 
             STATE=0   
  
-     case 4:#menu USB
-            if update_usb:
-                s=scan_USB_files()
-                ST4_menu=[]
-                for i in range(0,len(mp3_files)):
-                    ST4_menu.append(mp3_files[i].name)
-            if update:
-                init_menu(ST4_param,ST4_menu)
-
-            if ( (source=="IR") and (key==57) ) :
-                ST4_param[3]=ST4_param[3]+1
-                if ST4_param[3]>len(ST4_menu)-1:
-                    ST4_param[3]=0
-                update=True
-            if ( (source=="IR") and (key==41) ) :
-                ST4_param[3]=ST4_param[3]-1
-                if ST4_param[3]<0:
-                    ST4_param[3]=len(ST4_menu)-1
-                update=True
-                
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                if key>last_rotary_position:
-                    ST4_param[3]=ST4_param[3]+1
-                if key<last_rotary_position:
-                    ST4_param[3]=ST4_param[3]-1
-                if ST4_param[3]>len(ST4_menu)-1:
-                    ST4_param[3]=0
-                if ST4_param[3]<0:
-                    ST4_param[3]=len(ST4_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                url=mp3_files[ST4_param[3]]
-                player.set_mrl(url)
-                player.play()
-                
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                update_usb=True
-                update=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=1 
-                
-            if  ((source=="IR") and (key==0) ):
-                update_usb=True
-                save=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=100
-
-            if ( (source=="IR") and (key==3) )  : 
-                update_usb=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=0   
-
      case 6:#menu IP
             if update:
                 cmd = "ifconfig wlan0 | grep 'inet '"
