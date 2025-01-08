@@ -277,7 +277,7 @@ def will_you_load(arg):
         if arg[1]==2:
             draw.text((30,35),"echec MAJ",font=font3,size=1,fill=1)
         else:
-            draw.text((10,10),"Chargement de la MAJ ?",font=font4,size=1,fill=1)
+            draw.text((5,5),"Chargement de la MAJ ?",font=font4,size=1,fill=1)
             if arg[0]==0:
                draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
                draw.text((30,30),"OUI",font=font3,size=1,fill=0)
