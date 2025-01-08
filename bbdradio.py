@@ -846,7 +846,7 @@ try:
                 rep=[0,0]
                 STATE=42     
 
-           if (ST4_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST4_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
                 update=True
                 rep=[0,0]
                 STATE=43     
