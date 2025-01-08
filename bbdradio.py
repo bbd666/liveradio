@@ -13,7 +13,6 @@ import evdev
 from datetime import datetime
 import os
 import subprocess
-#from subprocess import Popen, STDOUT, PIPE
 from pathlib import Path
 import re
 import shutil
@@ -368,15 +367,16 @@ def scan_USB_files():
         mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
     update_usb=False
             
-def load_config():
+def load_config(arg):
     global usb_path
     global mount_path 
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
     if p.is_mount():
-        my_file = p/'data.ini'
+        my_file = p/arg
         if my_file.is_file():
-         shutil.copy(my_file,"/home/pierre/Documents/data.ini")
+         my_file_target="/home/pierre/Documents/"+arg
+         shutil.copy(my_file,my_file_target)
          return 1
         else:
          return 0
@@ -395,7 +395,7 @@ ST100_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
 ST4_param=[4,0,0,0]
-ST4_menu=["MEDIAS","MISE A JOUR"]
+ST4_menu=["MEDIAS","MAJ SYSTEME",,"MAJ CONFIG"]
 ST41_param=[4,0,0,0]
 ST41_menu=[]
 ST6_param=[4,0,0,0]
@@ -845,6 +845,11 @@ try:
                 update=True
                 rep=[0,0]
                 STATE=42     
+
+           if (ST4_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+                update=True
+                rep=[0,0]
+                STATE=43     
                 
             if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
                 update=True
@@ -911,7 +916,7 @@ try:
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=0   
 
-     case 42:#menu USB MAJ
+     case 42:#menu USB MAJ SYSTEME
             if update:
                 will_you_load(rep)
 
@@ -937,7 +942,56 @@ try:
             if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
                 update=True
                 if rep[0]==0:
-                    err=load_config()
+                    err=load_config("data.ini")
+                    if (err==1):
+                        rep[1]=1
+                        will_you_load(rep)
+                    else:
+                        rep[1]=2
+                        will_you_load(rep)
+                else:
+                    STATE=1
+ 
+            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+                update_usb=True
+                update=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=1 
+ 
+            if  ((source=="IR") and (key==0) ):
+                save=True
+                STATE=100
+
+            if ( (source=="IR") and (key==3) )  : 
+                STATE=0   
+
+     case 43:#menu USB MAJ CONFIG
+            if update:
+                will_you_load(rep)
+
+            if ( (source=="IR") and (key==57) ) :
+                update=True
+                rep[0]=(rep[0]+1)%2
+                will_you_load(rep)
+
+            if ( (source=="IR") and (key==41) ) :
+                update=True
+                rep[0]=(rep[0]-1)%2
+                will_you_load(rep)
+               
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                if key>last_rotary_position:
+                    rep[0]=(rep[0]+1)%2
+                if key<last_rotary_position:
+                    rep[0]=(rep[0]-1)%2
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                will_you_load(rep)
+
+            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                update=True
+                if rep[0]==0:
+                    err=load_config("bbdradio.py")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
