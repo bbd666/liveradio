@@ -94,13 +94,6 @@ def Keypad4x4Read(cols,rows):
        last_key=key
        return key
     GPIO.output(r, GPIO.HIGH)
-
-def set_time(arg):
-    now = datetime.now()
-    global time_var
-    global date_var
-    time_var[arg] = now.strftime('%H:%M:%S')
-    date_var[arg] = now.strftime("%d/%m/%Y")      
     
 def rotaryDeal(arg):
    arg[1] = GPIO.input(dtPin)
@@ -130,16 +123,21 @@ def clear_all_inside_content():
 def lo():
     quit()
   
+
+ def set_time():
+     time_var.set(strftime('%H:%M:%S'))
+     root.after(1000, set_time)
+    
 def init_menu(arg): 
     global root, content
-    global update
+    #global update
      
     clear_all_inside_content()
     content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
     canvas=ttk.Label(content,image=image_tk)
 
-    watch=ttk.Label(content,font=('Arial', 30, 'bold'),text=time_var[1],background=maincolor,foreground="yellow")
-    set_time(1)
+    watch=ttk.Label(content,font=('Arial', 30, 'bold'),textvar=time_var,background=maincolor,foreground="yellow")
+    set_time()
     
     states_btn_ind=[0,0,0,0,0]
     states_btn_ind[arg]=1
@@ -154,13 +152,13 @@ def init_menu(arg):
 
     content.grid(column=0, row=0)
     canvas.grid(column=0, row=0,rowspan=5)
-    watch.grid(column=0,row=5,sticky='n')
+    watch.grid(column=0,row=5,columnspan=5)
     radiobutton.grid(column=1,row=0,padx=(3,0))
     alarmbutton.grid(column=1,row=1,padx=(3,0))
     wifibutton.grid(column=1,row=2,padx=(3,0))
     usbbutton.grid(column=1,row=3,padx=(3,0))
     ipbutton.grid(column=1,row=4,padx=(3,0))
-    update=False   
+    #update=False   
 
 def menu_liste(arg,items): 
     global root, content
@@ -438,7 +436,7 @@ style_2 = ttk.Style()
 style_2.configure('TButton', font=('Helvetica', 20),background='blue')
 style_3 = ttk.Style()
 style_3.configure('click.TButton', font=('Helvetica', 20),background='yellow')
- 
+time_var = StringVar() 
  
 IR_param=[-100,time.perf_counter(),0,0]
 ROTARY_param=[0,0,0,0,-1]
@@ -465,8 +463,8 @@ STATE=0
 digit_sel=0
 last_rotary_position=ROTARY_param[3]
 
-# try:
- # while True:
+try:
+ while True:
             
     # key=trig_ir(IR_param)
     # source="IR"
@@ -492,13 +490,10 @@ last_rotary_position=ROTARY_param[3]
             # player.set_mrl(alarm_source)
             # player.play()
             # STATE=0
-    
-    # match STATE:
-     # case 0:#ecran d'accueil
-            # now=datetime.now()
-            # deltat=now-lastnow
-            # if (deltat.microseconds>950000):
-                # init_menu(0)
+    init_menu(1)
+    #match STATE:
+     #case 0:#ecran d'accueil
+            #init_menu(1)
                             
             # if  ((source=="IR") and (key==0) ):
                 # save=True
@@ -1211,7 +1206,7 @@ last_rotary_position=ROTARY_param[3]
                 # draw.rectangle((0, 0, width, height), outline=0, fill=0)
                 # draw.text((50,2),time_var[1],font=font100,size=1,fill=0)  
                 # draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
-                # set_time(1)
+                # set_time()
                 # draw.text((50,2),time_var[1],font=font100,size=1,fill=1)  
                 # draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
                 # oled.image(image_blanche)               
@@ -1220,7 +1215,8 @@ last_rotary_position=ROTARY_param[3]
             # if ((source=="IR") and (key==0) ):
                 # STATE=0
  
-# except KeyboardInterrupt:
-    # save_params()
-init_menu(1)
-mainloop()
+except KeyboardInterrupt:
+     save_params()
+
+#init_menu(1)
+#mainloop()
