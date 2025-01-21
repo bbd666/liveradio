@@ -385,7 +385,7 @@ def set_passwd():
    key=[]
    l=12
 
-   s=chr(708)+","+chr(709)+" : modification"
+   s="▲,▼ : modification"
    titre1=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
    titre1.place(x=10,y=20)
    s="'Select' : ajout"
@@ -394,7 +394,7 @@ def set_passwd():
    s="■ : suppression"
    titre3=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
    titre3.place(x=10,y=60)
-   s=">|| : validation"
+   s="►|| : validation"
    titre4=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
    titre4.place(x=180,y=60)
    
