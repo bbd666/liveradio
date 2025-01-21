@@ -123,8 +123,8 @@ def clear_all_inside_content():
 def lo():
     quit()
   
-
- def set_time():
+def set_time():
+     global time_var
      time_var.set(strftime('%H:%M:%S'))
      root.after(1000, set_time)
     
@@ -137,7 +137,7 @@ def init_menu(arg):
     canvas=ttk.Label(content,image=image_tk)
 
     watch=ttk.Label(content,font=('Arial', 30, 'bold'),textvar=time_var,background=maincolor,foreground="yellow")
-    set_time()
+    #set_time()
     
     states_btn_ind=[0,0,0,0,0]
     states_btn_ind[arg]=1
@@ -437,7 +437,7 @@ style_2.configure('TButton', font=('Helvetica', 20),background='blue')
 style_3 = ttk.Style()
 style_3.configure('click.TButton', font=('Helvetica', 20),background='yellow')
 time_var = StringVar() 
- 
+set_time() 
 IR_param=[-100,time.perf_counter(),0,0]
 ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
@@ -1219,4 +1219,4 @@ except KeyboardInterrupt:
      save_params()
 
 #init_menu(1)
-#mainloop()
+mainloop()
