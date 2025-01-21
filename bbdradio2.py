@@ -22,21 +22,21 @@ now=datetime.now()
 lastnow=datetime.now()
 update=True 
 update_usb=True      
-
+###########################################################
 liste=os.listdir("/home/pierre/Documents")
 liste_melodies=[]
 for f in liste:
     extension = os.path.splitext(f)[1]
     if ( (extension==".mp3") or (extension==".wav") ):
         liste_melodies.append(f)
-
+###########################################################
 ssid=""
 passwd=""
-
+###########################################################
 usb_path = "/dev/sda1"
 mount_path = "/home/pierre/usb_disk_mount"
 mp3_files=[]
-
+###########################################################
 #Load URL's from the database
 config = configparser.ConfigParser()
 config.read('data.ini')
@@ -55,6 +55,65 @@ alarm_clck_hour=int(config['ALARM']['HOUR'])
 alarm_clck_min=int(config['ALARM']['MIN'])
 alarm_source=config['ALARM']['SOURCE']
 url=liste_url[channel_ini]
+###########################################################            
+dev = get_ir_device()
+#Keypad Parameters
+row_list=[2,19,3]
+col_list=[26,4,16]
+GPIO.setmode(GPIO.BCM)
+for pin in row_list:
+  GPIO.setup(pin,GPIO.OUT)
+  GPIO.output(pin, GPIO.HIGH)
+for pin in col_list:
+  GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+key_map=[["9","8","7"],
+        ["6","5","4"],
+        ["3","2","1"]]
+last_key=-100       
+###########################################################    
+time_var=["",""]
+date_var=["",""]    
+#time_var = StringVar()
+###########################################################                  
+#Rotary encounter parameters
+clkPin = 18    # CLK Pin
+dtPin = 20    # DT Pin
+swPin = 22    # Button Pin
+#rotary encounter GPIO        
+GPIO.setup(clkPin, GPIO.IN)    # input mode
+GPIO.setup(dtPin, GPIO.IN)
+GPIO.setup(swPin, GPIO.IN)
+###########################################################
+player = vlc.MediaPlayer()
+player.set_mrl(url)
+###########################################################
+maincolor='#FAAF2C'    
+os.environ.__setitem__('DISPLAY', ':0.0')
+###########################################################    
+#-------------création de l'interface graphique---------------
+#Création de la fenêtre et de son titre
+root=Tk()
+root.configure(bg='darkorchid4')
+helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
+window_height=350
+window_width=400
+screen_width=root.winfo_screenwidth()
+screen_height=root.winfo_screenheight()
+x_cordinate = int((screen_width/2) - (window_width/2))
+y_cordinate = int((screen_height/2) - (window_height/2))
+root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+40, y_cordinate))
+content = ttk.Frame(root,style='new.TFrame')
+content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
+image=Image.open("38081587.jpg")
+image=image.resize((190,190),Image.Resampling.LANCZOS)
+image_tk=ImageTk.PhotoImage(image)
+style_1 = ttk.Style()
+style_1.configure('TFrame',background=maincolor)    
+style_2 = ttk.Style()
+style_2.configure('TButton', font=('Helvetica', 20),background='blue')
+style_3 = ttk.Style()
+style_3.configure('click.TButton', font=('Helvetica', 20),background='yellow')
+
 
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
@@ -93,7 +152,6 @@ def get_ir_device():
     for device in devices:
         if (device.name == "gpio_ir_recv"):           
             return device          
-dev = get_ir_device()
 
 def trig_ir(arg):
     event = dev.read_one()
@@ -119,23 +177,9 @@ def trig_ir(arg):
             arg[1] = time.perf_counter()
             arg[0]=last_result
             return result
-            
-#Keypad Parameters
-row_list=[2,19,3]
-col_list=[26,4,16]
-GPIO.setmode(GPIO.BCM)
-for pin in row_list:
-  GPIO.setup(pin,GPIO.OUT)
-  GPIO.output(pin, GPIO.HIGH)
-for pin in col_list:
-  GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-key_map=[["9","8","7"],
-        ["6","5","4"],
-        ["3","2","1"]]
-last_key=-100
-        
-#Define Matrix Keypad read function
+
 def Keypad4x4Read(cols,rows):
+#Define Matrix Keypad read function
   global last_key
   for r in rows:
     GPIO.output(r, GPIO.LOW)
@@ -147,24 +191,13 @@ def Keypad4x4Read(cols,rows):
        last_key=key
        return key
     GPIO.output(r, GPIO.HIGH)
-    
-time_var=["",""]
-date_var=["",""]    
+
 def set_time(arg):
     now = datetime.now()
     global time_var
     global date_var
     time_var[arg] = now.strftime('%H:%M:%S')
     date_var[arg] = now.strftime("%d/%m/%Y")      
-                  
-#Rotary encounter parameters
-clkPin = 18    # CLK Pin
-dtPin = 20    # DT Pin
-swPin = 22    # Button Pin
-#rotary encounter GPIO        
-GPIO.setup(clkPin, GPIO.IN)    # input mode
-GPIO.setup(dtPin, GPIO.IN)
-GPIO.setup(swPin, GPIO.IN)
 
 def rotaryDeal(arg):
    arg[1] = GPIO.input(dtPin)
@@ -186,50 +219,23 @@ def rotaryDeal(arg):
          arg[3] = arg[3] - 1
       arg[3]=max(min(arg[3],100),-100)             
 
-player = vlc.MediaPlayer()
-player.set_mrl(url)
-
-maincolor='#FAAF2C'    
-os.environ.__setitem__('DISPLAY', ':0.0')
-    
-#-------------création de l'interface graphique---------------
-#Création de la fenêtre et de son titre
-root=Tk()
-root.configure(bg='darkorchid4')
-helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
-window_height=350
-window_width=400
-screen_width=root.winfo_screenwidth()
-screen_height=root.winfo_screenheight()
-x_cordinate = int((screen_width/2) - (window_width/2))
-y_cordinate = int((screen_height/2) - (window_height/2))
-root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+40, y_cordinate))
-content = ttk.Frame(root,style='new.TFrame')
-content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
-
-time_var = StringVar()
+def clear_all_inside_content():
+    # Iterate through every widget inside the frame
+    for widget in content.winfo_children():
+        widget.destroy()
+        
 def set_time():
     time_var.set(strftime('%H:%M:%S'))
     root.after(1000, set_time)
     
 def lo():
     quit()
-    
-image=Image.open("38081587.jpg")
-image=image.resize((190,190),Image.Resampling.LANCZOS)
-image_tk=ImageTk.PhotoImage(image)
-style_1 = ttk.Style()
-style_1.configure('TFrame',background=maincolor)    
-style_2 = ttk.Style()
-style_2.configure('TButton', font=('Helvetica', 20),background='blue')
-style_3 = ttk.Style()
-style_3.configure('click.TButton', font=('Helvetica', 20),background='yellow')
-
+  
 def init_menu(arg): 
     global root, content
-    
-    content.destroy()
-    content = ttk.Frame(root,style='new.TFrame')
+    global update
+     
+    clear_all_inside_content()
     content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
     canvas=ttk.Label(content,image=image_tk)
 
@@ -255,11 +261,15 @@ def init_menu(arg):
     wifibutton.grid(column=1,row=2,padx=(3,0))
     usbbutton.grid(column=1,row=3,padx=(3,0))
     ipbutton.grid(column=1,row=4,padx=(3,0))
+    update=False   
 
 def menu_liste(arg,items): 
     global root, content
+    global update
     
-    content.destroy()
+    clear_all_inside_content()
+    content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
+
     arg[1]=arg[3]//arg[0]
     arg[2]=arg[3]%arg[0]
     #arg:nb_lignes,shiftbloc,decal,fillindex    
@@ -275,23 +285,23 @@ def menu_liste(arg,items):
             else :
                 button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='TButton',command=lo))
                 button[i].grid(column=0,row=i,padx=(0,0))                
+    update=False   
 
 def menu_volume(arg): 
     global root, content
     
-    content.destroy()
-    content = ttk.Frame(root,style='new.TFrame')
-    content.place(x=0, y=0, anchor="nw", width=window_width, height=window_height)
+    clear_all_inside_content()
+    content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
    
     progressbar=ttk.Progressbar(content, length=200, orient='horizontal', value=arg, mode='determinate',maximum=200)
     progressbar.grid(row=0,column=0, pady=100, padx=100)    
 
 def will_you_load(arg):
    global root, content
+   global update
     
-   content.destroy()
-   content = ttk.Frame(root,style='new.TFrame')
-   content.place(x=0, y=0, anchor="nw", width=window_width, height=window_height)
+    clear_all_inside_content()
+    content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
     
    w=5
    
@@ -313,6 +323,7 @@ def will_you_load(arg):
           msg.grid(column=0,row=1,padx=(30),pady=(20,20),columnspan=2)    
           oui.grid(column=0,row=2,pady=(20,20))    
           non.grid(column=1,row=2,pady=(20,20))    
+   update=False   
               
 def load_config(arg):
     global usb_path
@@ -332,14 +343,13 @@ def load_config(arg):
     subprocess.run(["sudo", "umount", mount_path])             
  
 def set_hour(arg):
+   global update
    global root, content
     
-   content.destroy()
-   content = ttk.Frame(root,style='new.TFrame')
-   content.place(x=0, y=0, anchor="nw", width=window_width, height=window_height)
+    clear_all_inside_content()
+    content.place(x=50, y=0, anchor="nw", width=window_width, height=window_height)
    
-   sf=30
-   
+   sf=30  
    if arg[4]==0:
     h1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(arg[0]),background="yellow",foreground="black")
    else:   
@@ -363,8 +373,72 @@ def set_hour(arg):
    separator.grid(column=2,row=0,padx=(30))    
    m1.grid(column=3,row=0,padx=(30))    
    m2.grid(column=4,row=0,padx=(30))    
+   update=False   
   
+def set_passwd():
+   global update
+   global root, content
+    
+   clear_all_inside_content()
+   content.place(x=0, y=0, anchor="nw", width=window_width, height=window_height)
+   
+   key=[]
+   l=12
+
+   s=chr(708)+","+chr(709)+" : modification"
+   titre1=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
+   titre1.place(x=10,y=20)
+   s="'Select' : ajout"
+   titre2=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
+   titre2.place(x=180,y=20)
+   s="■ : suppression"
+   titre3=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
+   titre3.place(x=10,y=60)
+   s=">|| : validation"
+   titre4=ttk.Label(content,font=('Arial', 12, 'bold'),text=s,background="grey")
+   titre4.place(x=180,y=60)
+   
+   for i in range(len(passwd)-1):
+    key.append(ttk.Label(content,font=('Arial', 12, 'bold'),text=passwd[i],background='black',foreground='yellow'))
+    key[i].place(x=i%l*25+15,y=i//l*30+120,width=20)
+   i=len(passwd)-1
+   key.append(ttk.Label(content,font=('Arial', 12, 'bold'),text=passwd[i],background='yellow',foreground='black'))
+   key[i].place(x=i%l*25+15,y=i//l*30+120,width=20)
+   update=False   
+    
+def save_params():
+    global volume
+    global channel_ini
+    global alarm_set
+    global alarm_clck_hour
+    global alarm_clck_min
+    global alarm_source
+    sind=str(volume)
+    schannel=str(channel_ini)
+    config.set('RADIO SETTINGS', 'INDEX', schannel)
+    config.set('RADIO SETTINGS', 'VOLUME',sind )
+    config.set('ALARM', 'SET',str(alarm_set) )
+    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
+    config.set('ALARM', 'MIN',str(alarm_clck_min) )
+    config.set('ALARM', 'SOURCE',alarm_source )
+    config.set('WIFI', 'SSID',ssid )
+    config.set('WIFI', 'PASSWD',passwd )
+    with open('data.ini', 'w') as configfile:   
+        config.write(configfile)
         
+def scan_USB_files():
+    global update_usb
+    global usb_path
+    global mount_path 
+    global mp3_files
+    audio_ext = [".mp3" ,".ogg", ".flac", ".wav"]
+    subprocess.run(["sudo", "mount", usb_path, mount_path])
+    p = Path(mount_path)
+    mp3_files=[]
+    if p.is_mount():
+        mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
+    update_usb=False 
+    
 a=[6,0,0,6]
 #menu_liste(a,liste_lbl)
 #init_menu(1)
