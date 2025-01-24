@@ -119,10 +119,7 @@ def clear_all_inside_content():
     # Iterate through every widget inside the frame
     for widget in content.winfo_children():
         widget.destroy()
-    
-def lo():
-    quit()
-  
+     
 def set_time():
      global time_var
      time_var.set(strftime('%H:%M:%S'))
@@ -136,36 +133,174 @@ def liste_menus(arg,items):
     arg[1]=arg[3]//arg[0]
     arg[2]=arg[3]%arg[0]
     #arg:nb_lignes,shiftbloc,decal,fillindex    
-    content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
     w=25
     button=[]
     for i in range(0,arg[0]):
         if i+arg[1]*arg[0]<len(items):
             if i+arg[1]*arg[0]==arg[3] :
-                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='click.TButton',command=lo))
+                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='click.TButton'))
                 button[i].grid(column=0,row=i,padx=(0,0))                
             else :
-                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='TButton',command=lo))
+                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='TButton'))
                 button[i].grid(column=0,row=i,padx=(0,0))                
   
 def menu_wifi(): 
-    global update,update_liste_wifi
+    global update_liste_wifi
     global ST5_param,ST5_menu
     
-    STATE=3
+    STATE=4
     if update_liste_wifi:
         ST5_menu=[]
         s=scan_wifi()
         for i in range(0,len(s)):
             w=s[i].split(":")
             ST5_menu.append(w[0])
-    liste_menus(ST5_param,ST5_menu)      
-    update=False   
+    liste_menus(ST5_param,ST5_menu)       
+    
+def usb_files():
+    global STATE,ST41_menu
+    
+    STATE=31
+    if update_usb==True:
+        scan_USB_files()
+        ST41_menu=[]
+        for i in range(0,len(mp3_files)):
+            ST41_menu.append(mp3_files[i].name)   
+    liste_menus(ST41_param,ST41_menu) 
+    
+def load_usb_ini():
+    global STATE
+    
+    if usb_inifile=='data.ini': 
+        STATE=32
+        load_config('data.ini')
+    if usb_inifile=='bbdradio.py': 
+        STATE=33
+        load_config('bbdradio.py')
+
+def menu_usb(): 
+    global ST4_param
+    global root,STATE
+    global usb_button
+    global update_usb
+    
+    update_usb=True
+
+    STATE=3
+    clear_all_inside_content()
+
+    states_btn_ind=[0,0,0,0,0]
+    states_btn_ind[ST4_param[3]]=1
+    states_btn=['TButton','click.TButton']
+  
+    w=12
+    usb_button=[]
+    usb_button.append(ttk.Button(content, text=ST4_menu[0],width=w,style=states_btn[states_btn_ind[0]],command=usb_files))
+    usb_button.append(ttk.Buttonttk.Button(content, text=ST4_menu[1],width=w,style=states_btn[states_btn_ind[1]],command=load_usb_ini))
+    usb_button.append(ttk.Buttonttk.Button(content, text=ST4_menu[2],width=w,style=states_btn[states_btn_ind[2]],command=load_usb_ini))
+
+    #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    usb_button[0].grid(column=0,row=0,padx=(3,0))
+    usb_button[1].grid(column=0,row=1,padx=(3,0))
+    usb_button[2].grid(column=0,row=2,padx=(3,0))
+    
+def activation_alarme():
+   global root,STATE
+   global alarm_set
+    
+   STATE=21
+    
+   clear_all_inside_content()
+   #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    
+   if alarm_set==0:
+          msg=ttk.Label(content,font=('Arial', 22, 'bold'),text="ALARME DESACTIVE",background=maincolor,foreground="yellow")
+   else:
+          msg=ttk.Label(content,font=('Arial', 22, 'bold'),text="ALARME ACTIVE",background=maincolor,foreground="yellow")
+
+   msg.grid(column=0,row=0,padx=(30),pady=(100,100))    
+
+def reglage_alarme():
+   global root
+   global alarm_clck_hour,alarm_clck_min
+   global digit_sel
+   
+   STATE=22
+   
+   h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10]
+    
+   clear_all_inside_content()
+   content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+   
+   sf=30  
+   if digit_sel==0:
+    h1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[0]),background="yellow",foreground="black")
+   else:   
+    h1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[0]),background="black",foreground="yellow")
+   if digit_sel==1:
+    h2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[1]),background="yellow",foreground="black")
+   else:   
+    h2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[1]),background="black",foreground="yellow")
+   if digit_sel==2:
+    m1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[2]),background="yellow",foreground="black")
+   else:   
+    m1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[2]),background="black",foreground="yellow")
+   if digit_sel==3:
+    m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="yellow",foreground="black")
+   else:   
+    m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="black",foreground="yellow")
+   separator=ttk.Label(content,font=('Arial', sf, 'bold'),text=':',background=maincolor,foreground="yellow")
+ 
+   h1.grid(column=0,row=0,padx=(30),pady=(100))    
+   h2.grid(column=1,row=0,padx=(30))    
+   separator.grid(column=2,row=0,padx=(30))    
+   m1.grid(column=3,row=0,padx=(30))    
+   m2.grid(column=4,row=0,padx=(30))    
+   
+def source_alarme(): 
+    global root,STATE
+    global ST2_param,ST2_menu
+    
+    STATE=23
+    liste_menus(ST2_param,ST2_menu)
+    
+def source_melodie(): 
+    global root,STATE
+    global ST_melodies,liste_melodies
+    
+    STATE=24
+    liste_menus(ST_melodies,liste_melodies)
+    
+def menu_alarme(): 
+    global ST3_param
+    global root,STATE
+    global alarme_button
+
+    STATE=2
+    clear_all_inside_content()
+
+    states_btn_ind=[0,0,0,0,0]
+    states_btn_ind[ST3_param[3]]=1
+    states_btn=['TButton','click.TButton']
+  
+    w=12
+    alarme_button=[]
+    alarme_button.append(ttk.Button(content, text=ST3_menu[0],width=w,style=states_btn[states_btn_ind[0]],command=activation_alarme))
+    alarme_button.append(ttk.Buttonttk.Button(content, text=ST3_menu[1],width=w,style=states_btn[states_btn_ind[1]],command=reglage_alarme))
+    alarme_button.append(ttk.Buttonttk.Button(content, text=ST3_menu[2],width=w,style=states_btn[states_btn_ind[2]],command=source_alarme))
+    alarme_button.append(ttk.Buttonttk.Button(content, text=ST3_menu[3],width=w,style=states_btn[states_btn_ind[2]],command=source_melodie))
+
+    #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    alarme_button[0].grid(column=0,row=0,padx=(3,0))
+    alarme_button[1].grid(column=0,row=1,padx=(3,0))
+    alarme_button[2].grid(column=0,row=2,padx=(3,0))
+    alarme_button[3].grid(column=0,row=3,padx=(3,0))
     
 def init_menu(): 
-    global ST1_param
     global root,STATE
-    global radiobutton,alarmbutton,wifibutton,usbbutton,ipbutton
+    global init_button
+    global update_liste_wifi
 
     STATE=0
     clear_all_inside_content()
@@ -179,51 +314,68 @@ def init_menu():
     states_btn=['TButton','click.TButton']
   
     w=12
-    radiobutton=ttk.Button(content, text='WEB STATIONS',width=w,style=states_btn[states_btn_ind[0]],command=liste_radios)
-    alarmbutton=ttk.Button(content, text='ALARME',width=w,style=states_btn[states_btn_ind[1]],command=set_hour)
-    wifibutton=ttk.Button(content, text='WIFI',width=w,style=states_btn[states_btn_ind[2]],command=menu_wifi)
-    usbbutton=ttk.Button(content, text='USB',width=w,style=states_btn[states_btn_ind[3]])
-    ipbutton=ttk.Button(content, text='ADRESSE IP',width=w,style=states_btn[states_btn_ind[4]])
+    
+    update_liste_wifi=True
+    
+    init_button=[]
+    init_button.append(ttk.Button(content, text='WEB STATIONS',width=w,style=states_btn[states_btn_ind[0]],command=liste_radios))
+    init_button.append(ttk.Buttonttk.Button(content, text='ALARME',width=w,style=states_btn[states_btn_ind[1]],command=menu_alarme))
+    init_button.append(ttk.Buttonttk.Button(content, text='USB',width=w,style=states_btn[states_btn_ind[2]],command=menu_usb))
+    init_button.append(ttk.Buttonttk.Button(content, text='WIFI',width=w,style=states_btn[states_btn_ind[3]],command=menu_wifi))
+    init_button.append(ttk.Buttonttk.Button(content, text='ADRESSE IP',width=w,style=states_btn[states_btn_ind[4]],command=menu_ip))
 
     content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
     canvas.grid(column=0, row=0,rowspan=5)
     watch.grid(column=0,row=5,columnspan=5)
-    radiobutton.grid(column=1,row=0,padx=(3,0))
-    alarmbutton.grid(column=1,row=1,padx=(3,0))
-    wifibutton.grid(column=1,row=2,padx=(3,0))
-    usbbutton.grid(column=1,row=3,padx=(3,0))
-    ipbutton.grid(column=1,row=4,padx=(3,0))    
+    init_button[0].grid(column=1,row=0,padx=(3,0))
+    init_button[1].grid(column=1,row=1,padx=(3,0))
+    init_button[2].grid(column=1,row=2,padx=(3,0))
+    init_button[3].grid(column=1,row=3,padx=(3,0))
+    init_button[4].grid(column=1,row=4,padx=(3,0))    
 
 def liste_radios(): 
-    global root
-    global update
-    global button
+    global root,STATE
     global ST2_param,ST2_menu
     
     STATE=1
-    liste_menus(ST2_param,ST2_menu)      
-    update=False   
+    liste_menus(ST2_param,ST2_menu)       
     
-#def menu_ip():
-
+def menu_ip():
+    cmd = "ifconfig wlan0 | grep 'inet '"
+    ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    output = ps.communicate()[0]
+    output= output.decode("utf-8")
+    output = re.split("inet",output)
+    output=output[1]
+    output = re.split("netmask",output)
+    clear_all_inside_content()
+    #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    ip_lbl=ttk.Label(content,font=('Arial', 24, 'bold'),text=output[0],background='black',foreground="yellow")
+                 
 def menu_volume(): 
-    global root
+    global root,STATE
     global volume
     
     clear_all_inside_content()
-    content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+    #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
    
     progressbar=ttk.Progressbar(content, length=200, orient='horizontal', value=volume, mode='determinate',maximum=200)
     progressbar.grid(row=0,column=0, pady=100, padx=100)    
-
+    match STATE:
+        case 0:
+            init_menu()
+        case 1:
+            liste_radios()
+        case 2:
+            menu_alarme()
+               
 def will_you_load():
    global root
-   global update
    global oui,non
    global rep
     
    clear_all_inside_content()
-   content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
+   #content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
     
    w=5
    
@@ -237,19 +389,16 @@ def will_you_load():
        else:
           msg=ttk.Label(content,font=('Arial', 22, 'bold'),text="Chargement de la MAJ ?",background=maincolor,foreground="yellow") 
           if rep[0]==0:
-              oui=ttk.Button(content, text='OUI',width=w,style='TButton',command=lo)              
-              non=ttk.Button(content, text='NON',width=w,style='click.TButton',command=lo)
+              oui=ttk.Button(content, text='OUI',width=w,style='TButton')              
+              non=ttk.Button(content, text='NON',width=w,style='click.TButton')
           else:
-              oui=ttk.Button(content, text='OUI',width=w,style='click.TButton',command=lo)              
-              non=ttk.Button(content, text='NON',width=w,style='TButton',command=lo)
+              oui=ttk.Button(content, text='OUI',width=w,style='click.TButton')              
+              non=ttk.Button(content, text='NON',width=w,style='TButton')
           msg.grid(column=0,row=1,padx=(30),pady=(20,20),columnspan=2)    
           oui.grid(column=0,row=2,pady=(20,20))    
           non.grid(column=1,row=2,pady=(20,20))    
-   update=False   
               
 def load_config(arg):
-    global usb_path
-    global mount_path 
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
     if p.is_mount():
@@ -263,45 +412,6 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])             
- 
-def set_hour():
-   global update
-   global root
-   global alarm_clck_hour,alarm_clck_min
-   global digit_sel
-   
-   STATE=2
-   
-   h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
-    
-   clear_all_inside_content()
-   content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
-   
-   sf=30  
-   if h[4]==0:
-    h1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[0]),background="yellow",foreground="black")
-   else:   
-    h1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[0]),background="black",foreground="yellow")
-   if h[4]==1:
-    h2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[1]),background="yellow",foreground="black")
-   else:   
-    h2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[1]),background="black",foreground="yellow")
-   if h[4]==2:
-    m1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[2]),background="yellow",foreground="black")
-   else:   
-    m1=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[2]),background="black",foreground="yellow")
-   if h[4]==3:
-    m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="yellow",foreground="black")
-   else:   
-    m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="black",foreground="yellow")
-   separator=ttk.Label(content,font=('Arial', sf, 'bold'),text=':',background=maincolor,foreground="yellow")
- 
-   h1.grid(column=0,row=0,padx=(30),pady=(100))    
-   h2.grid(column=1,row=0,padx=(30))    
-   separator.grid(column=2,row=0,padx=(30))    
-   m1.grid(column=3,row=0,padx=(30))    
-   m2.grid(column=4,row=0,padx=(30))    
-   update=False   
   
 def set_passwd():
    global update
@@ -358,9 +468,6 @@ def save_params():
         config.write(configfile)
         
 def scan_USB_files():
-    global update_usb
-    global usb_path
-    global mount_path 
     global mp3_files
     audio_ext = [".mp3" ,".ogg", ".flac", ".wav"]
     subprocess.run(["sudo", "mount", usb_path, mount_path])
@@ -368,8 +475,18 @@ def scan_USB_files():
     mp3_files=[]
     if p.is_mount():
         mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
-    update_usb=False 
  
+def set_volume():
+    if action=='vol+':
+        volume=min(volume+5,200)
+        menu_volume(volume)
+        player.audio_set_volume(volume)       
+                    
+    if action=='vol-':
+        volume=max(volume-5,0)
+        menu_volume(volume)
+        player.audio_set_volume(volume)  
+        
 os.system('sh remote.sh')
 
 now=datetime.now()
@@ -384,9 +501,7 @@ for f in liste:
     extension = os.path.splitext(f)[1]
     if ( (extension==".mp3") or (extension==".wav") ):
         liste_melodies.append(f)
-###########################################################
-ssid=""
-passwd="czaecmlknr'ç_u'é,'àuç23F"
+ST_melodies=[4,0,0,0]
 ###########################################################
 usb_path = "/dev/sda1"
 mount_path = "/home/pierre/usb_disk_mount"
@@ -495,9 +610,10 @@ STATE=0
 digit_sel=0
 last_rotary_position=ROTARY_param[3]
 init_menu()
+action=''
 
 def poll_for_data():
-    global STATE
+    global STATE,action
     #interface de commande#########################
     key=trig_ir(IR_param)
     source="IR"
@@ -517,8 +633,7 @@ def poll_for_data():
         print(source)
         print(key)  
         
-    action=''
-    if ( ((source=="IR") and (key==49)) or ((source=="clavier") and (key==6)) ) :
+    if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key==6)) ) :
         action='home'
     if  ((source=="IR") and (key==0) ):
         action='logout'
@@ -534,9 +649,8 @@ def poll_for_data():
         action='arrow-'
     if ( (source=="IR") and (key==41) ) :
         action='arrow+'
-    for i in range(6):
-        if (ST1_param[3]==i and ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) or ((source=="clavier") and (key==1)) )) :
-            action='list'+str(i+1)
+    if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+        action='select'
     if (( (source=="IR") and (key==32)  ) or ( (source=="clavier") and (key==9) )) : 
         action='back' 
 
@@ -549,7 +663,7 @@ def poll_for_data():
         init_menu(1)
      
     match STATE:
-        case 0:#ecran d'accueil
+        case 0:     #ecran d'accueil
             if action=='arrow-':
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
@@ -561,594 +675,426 @@ def poll_for_data():
                 if ST1_param[3]<0:
                     ST1_param[3]=len(ST1_menu)-1
                 init_menu()
-        
-    root.after(300, poll_for_data)
+                
+            if action[0:6]=='select':
+                init_button[ST1_param[3]].invoke()
+                
+            if action=='play':
+                if not(player.is_playing()):
+                    player.play()
+                else:
+                    player.pause()
+            
+            set_volume()
+                    
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST1_param[3]=ST1_param[3]+1
+                if key<last_rotary_position:
+                    ST1_param[3]=ST1_param[3]-1
+                f ST1_param[3]>len(ST1_menu)-1:
+                    ST1_param[3]=0
+                if ST1_param[3]<0:
+                    ST1_param[3]=len(ST1_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                init_menu()
+                
+        case 1:     #web radio
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                init_menu()
+                
+            if action=='arrow-':
+                ST2_param[3]=ST2_param[3]+1
+                if ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                liste_radios()
+                 
+            if action=='arrow+':
+                ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                liste_radios()
+                
+            if action=='select':
+                url=liste_url[ST2_param[3]]
+                player.set_mrl(url)
+                channel_ini=ST2_param[3]
+                player.play()  
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST2_param[3]=ST2_param[3]+1
+                if key<last_rotary_position:
+                    ST2_param[3]=ST2_param[3]-1
+                f ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                liste_radios()
+ 
+            set_volume()
+ 
+        case 2:     #alarme
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                init_menu()
+                
+            if action=='arrow-':
+                ST3_param[3]=ST3_param[3]+1
+                if ST3_param[3]>len(ST3_menu)-1:
+                    ST3_param[3]=0
+                menu_alarme()
+                 
+            if action=='arrow+':
+                ST3_param[3]=ST3_param[3]-1
+                if ST3_param[3]<0:
+                    ST3_param[3]=len(ST3_menu)-1
+                menu_alarme()
+                               
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST3_param[3]=ST3_param[3]+1
+                if key<last_rotary_position:
+                    ST3_param[3]=ST3_param[3]-1
+                f ST3_param[3]>len(ST3_menu)-1:
+                    ST3_param[3]=0
+                if ST3_param[3]<0:
+                    ST3_param[3]=len(ST3_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                menu_alarme()
+ 
+            set_volume()
+
+            if action=='select':
+                alarme_button[ST3_param[3]].invoke()
+ 
+        case 21:    #activation alarme
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                menu_alarme()
+                
+            if action=='select':
+                if alarm_set==1:
+                    alarm_set=0 
+                else:
+                    alarm_set=1
+                activation_alarme()
+                 
+        case 22:    #reglage alarme
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                menu_alarme()
+                
+            if action=='select':
+                if alarm_set==1:
+                    alarm_set=0 
+                else:
+                    alarm_set=1
+                activation_alarme()
+     
+            if action='arrow+'
+                match digit_sel:
+                 case 0:
+                    alarm_clck_hour=min(alarm_clck_hour+10,23)
+                 case 1:
+                    alarm_clck_hour=min(alarm_clck_hour+1,23)
+                 case 2:
+                    alarm_clck_min=min(alarm_clck_min+10,59)
+                 case 3:
+                    alarm_clck_min=min(alarm_clck_min+1,59)
+                reglage_alarme()    
+                    
+            if action='arrow-'
+                match digit_sel:
+                 case 0:
+                    alarm_clck_hour=max(alarm_clck_hour-10,0)
+                 case 1:
+                    alarm_clck_hour=max(alarm_clck_hour-1,0)
+                 case 2:
+                    alarm_clck_min=max(alarm_clck_min-10,0)
+                 case 3:
+                    alarm_clck_min=max(alarm_clck_min-1,0)                
+                reglage_alarme()    
+      
+            if action=='select':
+                digit_sel=(digit_sel+1)%4
+                 
+        case 23:    #selection source alarme
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                menu_alarme()
+
+            if action=='arrow-':
+                ST2_param[3]=ST2_param[3]+1
+                if ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                source_alarme()
+                 
+            if action=='arrow+':
+                ST2_param[3]=ST2_param[3]-1
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                source_alarme()
+                
+            if action=='select':
+                alarm_source=liste_url[ST2_param[3]] 
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST2_param[3]=ST2_param[3]+1
+                if key<last_rotary_position:
+                    ST2_param[3]=ST2_param[3]-1
+                f ST2_param[3]>len(ST2_menu)-1:
+                    ST2_param[3]=0
+                if ST2_param[3]<0:
+                    ST2_param[3]=len(ST2_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                source_alarme()
+                
+        case 24:    #selection source melodie
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                menu_alarme()
+
+            if action=='arrow-':
+                ST_melodies[3]=ST_melodies[3]+1
+                if ST_melodies[3]>len(liste_melodies)-1:
+                    ST_melodies[3]=0
+                source_alarme()
+                 
+            if action=='arrow+':
+                ST_melodies[3]=ST_melodies[3]-1
+                if ST_melodies[3]<0:
+                    ST_melodies[3]=len(liste_melodies)-1
+                source_alarme()
+                
+            if action=='select':
+                alarm_source=liste_melodies[ST_melodies[3]]
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST_melodies[3]=ST_melodies[3]+1
+                if key<last_rotary_position:
+                    ST_melodies[3]=ST_melodies[3]-1
+                f ST_melodies[3]>len(liste_melodies)-1:
+                    ST_melodies[3]=0
+                if ST_melodies[3]<0:
+                    ST_melodies[3]=len(liste_melodies)-1
+                last_rotary_position=ROTARY_param[3]
+                source_alarme()                
+                  
+        case 3:     #USB
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                init_menu()
+                
+            if action=='arrow-':
+                ST4_param[3]=ST4_param[3]+1
+                if ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
+                menu_usb()
+                 
+            if action=='arrow+':
+                ST4_param[3]=ST4_param[3]-1
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
+                menu_usb()
+                               
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST4_param[3]=ST4_param[3]+1
+                if key<last_rotary_position:
+                    ST4_param[3]=ST4_param[3]-1
+                f ST4_param[3]>len(ST4_menu)-1:
+                    ST4_param[3]=0
+                if ST4_param[3]<0:
+                    ST4_param[3]=len(ST4_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                menu_usb()
+ 
+            set_volume()
+
+            if action=='select':
+                usb_button[ST4_param[3]].invoke()            
+
+        case 31:    #USB media Files
+            if action=='home':
+                subprocess.run(["sudo", "umount", mount_path])
+                init_menu()
+
+            if action=='back':
+                subprocess.run(["sudo", "umount", mount_path])
+                menu_usb()
+                
+            if action=='arrow-':
+                ST41_param[3]=ST41_param[3]+1
+                if ST41_param[3]>len(ST41_menu)-1:
+                    ST41_param[3]=0
+                update_usb=False
+                usb_files()
+                 
+            if action=='arrow+':
+                ST41_param[3]=ST41_param[3]-1
+                if ST41_param[3]<0:
+                    ST41_param[3]=len(ST41_menu)-1
+                update_usb=False
+                usb_files()
+                
+            if action=='select':
+                url=liste_url[ST41_param[3]]
+                player.set_mrl(url)
+                channel_ini=ST41_param[3]
+                player.play()  
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST41_param[3]=ST41_param[3]+1
+                if key<last_rotary_position:
+                    ST41_param[3]=ST41_param[3]-1
+                f ST41_param[3]>len(ST41_menu)-1:
+                    ST41_param[3]=0
+                if ST41_param[3]<0:
+                    ST41_param[3]=len(ST41_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update_usb=False
+                usb_files()
+ 
+        case 32:    #MAJ config file data.ini
+            if action=='home':
+                subprocess.run(["sudo", "umount", mount_path])
+                init_menu()
+
+            if action=='back':
+                subprocess.run(["sudo", "umount", mount_path])
+                menu_usb()
+                
+            if action=='arrow-':
+                rep[0]=(rep[0]+1)%2
+                will_you_load(rep)
+                 
+            if action=='arrow+':
+                rep[0]=(rep[0]-1)%2
+                will_you_load(rep)
+                
+            if action=='select':
+                if rep[0]==0:
+                    err=load_config("data.ini")
+                    if (err==1):
+                        rep[1]=1
+                        will_you_load(rep)
+                    else:
+                        rep[1]=2
+                        will_you_load(rep)
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    rep[0]=(rep[0]+1)%2
+                if key<last_rotary_position:
+                    rep[0]=(rep[0]-1)%2
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                will_you_load(rep)               
+  
+        case 33:    #MAJ systeme file bbdradio2.py
+            if action=='home':
+                subprocess.run(["sudo", "umount", mount_path])
+                init_menu()
+
+            if action=='back':
+                subprocess.run(["sudo", "umount", mount_path])
+                menu_usb()
+                
+            if action=='arrow-':
+                rep[0]=(rep[0]+1)%2
+                will_you_load(rep)
+                 
+            if action=='arrow+':
+                rep[0]=(rep[0]-1)%2
+                will_you_load(rep)
+                
+            if action=='select':
+                if rep[0]==0:
+                    err=load_config("bbdradio2.py")
+                    if (err==1):
+                        rep[1]=1
+                        will_you_load(rep)
+                    else:
+                        rep[1]=2
+                        will_you_load(rep)
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    rep[0]=(rep[0]+1)%2
+                if key<last_rotary_position:
+                    rep[0]=(rep[0]-1)%2
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                will_you_load(rep)
+ 
+        case 4:     #WIFI
+            if action=='home':
+                init_menu()
+
+            if action=='back':
+                init_menu()
+                
+            if action=='arrow-':
+                ST5_param[3]=ST5_param[3]+1
+                if ST5_param[3]>len(ST5_menu)-1:
+                    ST5_param[3]=0
+                update_liste_wifi=False
+                menu_wifi()
+                 
+            if action=='arrow+':
+                ST5_param[3]=ST5_param[3]-1
+                if ST5_param[3]<0:
+                    ST5_param[3]=len(ST5_menu)-1
+                update_liste_wifi=False
+                menu_wifi()
+                
+            if action=='select':
+                pwd=passwd
+                ssid=ST5_menu[ST5_param[3]]
+                set_passwd()
+                
+            if action=='scroll':
+                if key>last_rotary_position:
+                    ST5_param[3]=ST5_param[3]+1
+                if key<last_rotary_position:
+                    ST5_param[3]=ST5_param[3]-1
+                f ST5_param[3]>len(ST5_menu)-1:
+                    ST5_param[3]=0
+                if ST5_param[3]<0:
+                    ST5_param[3]=len(ST5_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update_liste_wifi=False
+                menu_wifi()
+
+                
+root.after(300, poll_for_data)
     
-#match STATE:
-    # case 0:#ecran d'accueil
-        # init_menu()
-                        
-        # if  ((source=="IR") and (key==0) ):
-            # save=True
-            # STATE=100
-            
-        # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-            # if key>last_rotary_position:
-                # volume=min(volume+1,200)
-            # if key<last_rotary_position:
-                # volume=max(volume-1,0)
-            # menu_volume(volume)
-            # player.audio_set_volume(volume)
-            # last_rotary_position=ROTARY_param[3]
-            
-        # if ( (source=="IR") and (key==43) ) :
-            # volume=min(volume+5,200)
-            # menu_volume(volume)
-            # player.audio_set_volume(volume)
-            
-        # if ( (source=="IR") and (key==51) ) :
-            # volume=max(volume-5,0)
-            # menu_volume(volume)
-            # player.audio_set_volume(volume)
 
-        # if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
-            # if not(player.is_playing()):
-                # player.play()
-            # else:
-                # player.pause()                   
+  
+  
 
-        # if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # radiobutton.invoke() #webradios state=1
-            
-        # if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True            
-            # #alarmbutton.state(["disabled"])
-            # alarmbutton.invoke()   #alarm state=2
-            
-        # if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # wifibutton.invoke() #wifi state=3                              
-            
-        # if (ST1_param[3]==4 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # usbbutton.invoke() #USB state=4
-           
-        # if (ST1_param[3]==5 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # ipbutton.invoke()    #IP state=5
 
-    # case 1:#menus principaux
-        # if update==True:
-            # menu_liste(ST1_param,ST1_menu)           
    
-        # if ( (source=="IR") and (key==57) ) :
-            # ST1_param[3]=ST1_param[3]+1
-            # if ST1_param[3]>len(ST1_menu)-1:
-                # ST1_param[3]=0
-            # update=True
-            
-        # if ( (source=="IR") and (key==41) ) :
-            # ST1_param[3]=ST1_param[3]-1
-            # if ST1_param[3]<0:
-                # ST1_param[3]=len(ST1_menu)-1
-            # update=True
-            
-        # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-            # if key>last_rotary_position:
-                # ST1_param[3]=ST1_param[3]+1
-            # if key<last_rotary_position:
-                # ST1_param[3]=ST1_param[3]-1
-            # if ST1_param[3]>len(ST1_menu)-1:
-                # ST1_param[3]=0
-            # if ST1_param[3]<0:
-                # ST1_param[3]=len(ST1_menu)-1
-            # last_rotary_position=ROTARY_param[3]
-            # update=True
-                
-        # if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # STATE=2         #web radio
-            
-        # if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # STATE=3         #alarm
-            
-        # if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # STATE=5         #wifi                              
-            
-        # if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # STATE=4         #USB
-            
-        # if (ST1_param[3]==4 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-            # update=True
-            # STATE=6         #IP
-
-        # if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
-            # STATE=0   
-            
-        # if  ((source=="IR") and (key==0) ):
-            # save=True
-            # STATE=100
-  
-     # case 2:#menus web radios
-            # if update:
-                # init_menu(ST2_param,ST2_menu)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST2_param[3]=ST2_param[3]+1
-                # if ST2_param[3]>len(ST2_menu)-1:
-                    # ST2_param[3]=0
-                # update=True
-                
-            # if ( (source=="IR") and (key==41) ) :
-                # ST2_param[3]=ST2_param[3]-1
-                # if ST2_param[3]<0:
-                    # ST2_param[3]=len(ST2_menu)-1
-                # update=True
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST2_param[3]=ST2_param[3]+1
-                # if key<last_rotary_position:
-                    # ST2_param[3]=ST2_param[3]-1
-                # if ST2_param[3]>len(ST2_menu)-1:
-                    # ST2_param[3]=0
-                # if ST2_param[3]<0:
-                    # ST2_param[3]=len(ST2_menu)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # url=liste_url[ST2_param[3]]
-                # player.set_mrl(url)
-                # channel_ini=ST2_param[3]
-                # player.play()
-                
-            # if ( (source=="IR") and (key==43) ) :
-                # volume=min(volume+5,200)
-                # sound_box(volume)
-                # player.audio_set_volume(volume)
-                # update=True
-                
-            # if ( (source=="IR") and (key==51) ) :
-                # volume=max(volume-5,0)
-                # sound_box(volume)
-                # player.audio_set_volume(volume)
-                # update=True
-                
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # STATE=1            
-                # update=True
-                
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-            # if ((source=="IR") and (key==0)):
-                # save=True
-                # STATE=100
-  
-     # case 3:#menus settings alarme
-            # if update:
-                # init_menu(ST3_param,ST3_menu)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST3_param[3]=ST3_param[3]+1
-                # if ST3_param[3]>len(ST3_menu)-1:
-                    # ST3_param[3]=0
-                # update=True
-            # if ( (source=="IR") and (key==41) ) :
-                # ST3_param[3]=ST3_param[3]-1
-                # if ST3_param[3]<0:
-                    # ST3_param[3]=len(ST3_menu)-1
-                # update=True
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST3_param[3]=ST3_param[3]+1
-                # if key<last_rotary_position:
-                    # ST3_param[3]=ST3_param[3]-1
-                # if ST3_param[3]>len(ST3_menu)-1:
-                    # ST3_param[3]=0
-                # if ST3_param[3]<0:
-                    # ST3_param[3]=len(ST3_menu)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # STATE=30
-                
-            # if (ST3_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # digit_sel=0
-                # STATE=31     
-                
-            # if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-               # update=True
-               # STATE=32
-                
-            # if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # STATE=33
-                
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update=True
-                # STATE=1 
-                
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-     # case 30:#menus activation alarme
-        # if update:
-            # draw=ImageDraw.Draw(image_blanche)
-            # draw.rectangle((0, 0, width, height), outline=0, fill=0)
-            # if alarm_set==1:
-                # draw.text((10,30),"ALARME ACTIVE",font=font4,size=1,fill=1)
-            # else:            
-                # draw.text((10,30),"ALARME DESACTIVEE",font=font4,size=1,fill=1)
-            # oled.image(image_blanche)
-            # oled.show()
-            # update=False  
-            
-        # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
-            # update=True
-            # last_rotary_position=ROTARY_param[3]
-            # STATE=3               
-            
-        # if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            # if alarm_set==1:
-                # alarm_set=0 
-            # else:
-                # alarm_set=1
-            # update=True
-            
-        # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-
-        # if ( (source=="IR") and (key==3) )  : 
-            # STATE=0   
-            
-     # case 31:#menus reglage alarme
-        # if update:
-            # h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
-            # set_hour(h)
-            
-        # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
-            # update=True
-            # last_rotary_position=ROTARY_param[3]
-            # STATE=3       
-            
-        # if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            # digit_sel=(digit_sel+1)%4
-            # update=True
-            
-        # if ( (source=="IR") and (key==41) ) :
-            # match digit_sel:
-             # case 0:
-                # alarm_clck_hour=min(alarm_clck_hour+10,23)
-             # case 1:
-                # alarm_clck_hour=min(alarm_clck_hour+1,23)
-             # case 2:
-                # alarm_clck_min=min(alarm_clck_min+10,59)
-             # case 3:
-                # alarm_clck_min=min(alarm_clck_min+1,59)
-            # update=True
-            
-        # if ( (source=="IR") and (key==57) ) :
-            # match digit_sel:
-             # case 0:
-                # alarm_clck_hour=max(alarm_clck_hour-10,0)
-             # case 1:
-                # alarm_clck_hour=max(alarm_clck_hour-1,0)
-             # case 2:
-                # alarm_clck_min=max(alarm_clck_min-10,0)
-             # case 3:
-                # alarm_clck_min=max(alarm_clck_min-1,0)                
-            # update=True      
-                        
-        # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
- 
-        # if ( (source=="IR") and (key==3) )  : 
-            # STATE=0   
- 
-     # case 32:#menus selection source alarme
-            # if update:
-                # init_menu(ST2_param,ST2_menu)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST2_param[3]=ST2_param[3]+1
-                # if ST2_param[3]>len(ST2_menu)-1:
-                    # ST2_param[3]=0
-                # update=True
-                
-            # if ( (source=="IR") and (key==41) ) :
-                # ST2_param[3]=ST2_param[3]-1
-                # if ST2_param[3]<0:
-                    # ST2_param[3]=len(ST2_menu)-1
-                # update=True                
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST2_param[3]=ST2_param[3]+1
-                # if key<last_rotary_position:
-                    # ST2_param[3]=ST2_param[3]-1
-                # if ST2_param[3]>len(ST2_menu)-1:
-                    # ST2_param[3]=0
-                # if ST2_param[3]<0:
-                    # ST2_param[3]=len(ST2_menu)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # alarm_source=liste_url[ST2_param[3]]
-
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update=True
-                # STATE=3            
-
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-                
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-     # case 33:#menus selection melodie
-            # if update:
-                # init_menu(ST_melodies,liste_melodies)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST_melodies[3]=ST_melodies[3]+1
-                # if ST_melodies[3]>len(liste_melodies)-1:
-                    # ST_melodies[3]=0
-                # update=True
-                
-            # if ( (source=="IR") and (key==41) ) :
-                # ST_melodies[3]=ST_melodies[3]-1
-                # if ST_melodies[3]<0:
-                    # ST_melodies[3]=len(liste_melodies)-1
-                # update=True                
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST_melodies[3]=ST_melodies[3]+1
-                # if key<last_rotary_position:
-                    # ST_melodies[3]=ST_melodies[3]-1
-                # if ST_melodies[3]>len(liste_melodies)-1:
-                    # ST_melodies[3]=0
-                # if ST_melodies[3]<0:
-                    # ST_melodies[3]=len(liste_melodies)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # alarm_source=liste_melodies[ST_melodies[3]]
-
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update=True
-                # STATE=3            
-
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-                
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-     # case 4:#menu USB
-            # if update:
-                # init_menu(ST4_param,ST4_menu)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST4_param[3]=ST4_param[3]+1
-                # if ST4_param[3]>len(ST4_menu)-1:
-                    # ST4_param[3]=0
-                # update=True
-            # if ( (source=="IR") and (key==41) ) :
-                # ST4_param[3]=ST4_param[3]-1
-                # if ST4_param[3]<0:
-                    # ST4_param[3]=len(ST4_menu)-1
-                # update=True
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST4_param[3]=ST4_param[3]+1
-                # if key<last_rotary_position:
-                    # ST4_param[3]=ST4_param[3]-1
-                # if ST4_param[3]>len(ST4_menu)-1:
-                    # ST4_param[3]=0
-                # if ST4_param[3]<0:
-                    # ST4_param[3]=len(ST4_menu)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if (ST4_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # update_usb=True
-                # STATE=41
-                
-            # if (ST4_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # rep=[0,0]
-                # STATE=42     
-
-            # if (ST4_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
-                # update=True
-                # rep=[0,0]
-                # STATE=43     
-                
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update=True
-                # STATE=1 
-                
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-     # case 41:#menu USB Medias
-            # if update_usb:
-                # s=scan_USB_files()
-                # ST41_menu=[]
-                # for i in range(0,len(mp3_files)):
-                    # ST41_menu.append(mp3_files[i].name)
-            # if update:
-                # init_menu(ST41_param,ST41_menu)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # ST41_param[3]=ST41_param[3]+1
-                # if ST41_param[3]>len(ST41_menu)-1:
-                    # ST41_param[3]=0
-                # update=True
-            # if ( (source=="IR") and (key==41) ) :
-                # ST41_param[3]=ST41_param[3]-1
-                # if ST41_param[3]<0:
-                    # ST41_param[3]=len(ST41_menu)-1
-                # update=True
-                
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # ST41_param[3]=ST41_param[3]+1
-                # if key<last_rotary_position:
-                    # ST41_param[3]=ST41_param[3]-1
-                # if ST41_param[3]>len(ST41_menu)-1:
-                    # ST41_param[3]=0
-                # if ST41_param[3]<0:
-                    # ST41_param[3]=len(ST41_menu)-1
-                # last_rotary_position=ROTARY_param[3]
-                # update=True
-
-            # if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # url=mp3_files[ST41_param[3]]
-                # player.set_mrl(url)
-                # player.play()
-                
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update_usb=True
-                # update=True
-                # subprocess.run(["sudo", "umount", mount_path])
-                # STATE=1 
-                
-            # if  ((source=="IR") and (key==0) ):
-                # update_usb=True
-                # save=True
-                # subprocess.run(["sudo", "umount", mount_path])
-                # STATE=100
-
-            # if ( (source=="IR") and (key==3) )  : 
-                # update_usb=True
-                # subprocess.run(["sudo", "umount", mount_path])
-                # STATE=0   
-
-     # case 42:#menu USB MAJ SYSTEME
-            # if update:
-                # will_you_load(rep)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # update=True
-                # rep[0]=(rep[0]+1)%2
-                # will_you_load(rep)
-
-            # if ( (source=="IR") and (key==41) ) :
-                # update=True
-                # rep[0]=(rep[0]-1)%2
-                # will_you_load(rep)
-               
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # rep[0]=(rep[0]+1)%2
-                # if key<last_rotary_position:
-                    # rep[0]=(rep[0]-1)%2
-                # update=True
-                # last_rotary_position=ROTARY_param[3]
-                # will_you_load(rep)
-
-            # if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # update=True
-                # if rep[0]==0:
-                    # err=load_config("data.ini")
-                    # if (err==1):
-                        # rep[1]=1
-                        # will_you_load(rep)
-                    # else:
-                        # rep[1]=2
-                        # will_you_load(rep)
-                # else:
-                    # STATE=1
- 
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update_usb=True
-                # update=True
-                # subprocess.run(["sudo", "umount", mount_path])
-                # STATE=1 
- 
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
-
-     # case 43:#menu USB MAJ CONFIG
-            # if update:
-                # will_you_load(rep)
-
-            # if ( (source=="IR") and (key==57) ) :
-                # update=True
-                # rep[0]=(rep[0]+1)%2
-                # will_you_load(rep)
-
-            # if ( (source=="IR") and (key==41) ) :
-                # update=True
-                # rep[0]=(rep[0]-1)%2
-                # will_you_load(rep)
-               
-            # if ((source=="rotary") and (ROTARY_param[4]==-1)):
-                # if key>last_rotary_position:
-                    # rep[0]=(rep[0]+1)%2
-                # if key<last_rotary_position:
-                    # rep[0]=(rep[0]-1)%2
-                # update=True
-                # last_rotary_position=ROTARY_param[3]
-                # will_you_load(rep)
-
-            # if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-                # update=True
-                # if rep[0]==0:
-                    # err=load_config("bbdradio.py")
-                    # if (err==1):
-                        # rep[1]=1
-                        # will_you_load(rep)
-                    # else:
-                        # rep[1]=2
-                        # will_you_load(rep)
-                # else:
-                    # STATE=1
- 
-            # if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
-                # update_usb=True
-                # update=True
-                # subprocess.run(["sudo", "umount", mount_path])
-                # STATE=1 
- 
-            # if  ((source=="IR") and (key==0) ):
-                # save=True
-                # STATE=100
-
-            # if ( (source=="IR") and (key==3) )  : 
-                # STATE=0   
 
      # case 5:#menu wifi
             # if update:
