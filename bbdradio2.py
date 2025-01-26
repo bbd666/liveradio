@@ -246,7 +246,7 @@ def reglage_alarme():
     m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="yellow",foreground="black")
    else:   
     m2=ttk.Label(content,font=('Arial', sf, 'bold'),text=str(h[3]),background="black",foreground="yellow")
-   separator=ttk.Label(content,font=('Arial', sf, 'bold'),text=':',background=maincolor,foreground="yellow")
+   separator=ttk.Label(content,font=('Arial', sf, 'bold'),text=':',background="black",foreground="yellow")
  
    h1.grid(column=0,row=0,padx=(30),pady=(100))    
    h2.grid(column=1,row=0,padx=(30))    
@@ -298,12 +298,16 @@ def init_menu():
     global update_liste_wifi
 
     STATE=0
+    save_params()
+
     clear_all_inside_content()
 
     canvas=ttk.Label(content,image=image_tk)
 
     watch=ttk.Label(content,font=('Arial', 30, 'bold'),textvar=time_var,background='black',foreground="yellow")
     
+    volume_bar=ttk.Progressbar(content, length=200, orient='horizontal', value=volume, mode='determinate',maximum=200)
+ 
     states_btn_ind=[0,0,0,0,0]
     states_btn_ind[ST1_param[3]]=1
     states_btn=['TButton','click.TButton']
@@ -321,7 +325,8 @@ def init_menu():
 
     content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
     canvas.grid(column=0, row=0,rowspan=5)
-    watch.grid(column=0,row=5,columnspan=5)
+    watch.grid(column=0,row=5)
+    volume_bar.grid(column=1,row=5)
     init_button[0].grid(column=1,row=0,padx=(3,0))
     init_button[1].grid(column=1,row=1,padx=(3,0))
     init_button[2].grid(column=1,row=2,padx=(3,0))
@@ -349,23 +354,7 @@ def menu_ip():
     clear_all_inside_content()
     ip_lbl=ttk.Label(content,font=('Arial', 24, 'bold'),text=output[0],background='black',foreground="yellow")
     ip_lbl.grid(column=0,row=0,padx=(50,50),pady=(100,100))
-    
-def menu_volume(): 
-    global root,STATE
-    global volume
-    
-    clear_all_inside_content()
-   
-    progressbar=ttk.Progressbar(content, length=200, orient='horizontal', value=volume, mode='determinate',maximum=200)
-    progressbar.grid(row=0,column=0, pady=100, padx=100)    
-    match STATE:
-        case 0:
-            init_menu()
-        case 1:
-            liste_radios()
-        case 2:
-            menu_alarme()
-               
+                   
 def will_you_load():
    global root,STATE
    global oui,non,usb_inifile
@@ -478,18 +467,35 @@ def scan_USB_files():
         mp3_files = [x for x in p.iterdir() if x.suffix in audio_ext]
  
 def set_volume():
+    global volume
     if action=='vol+':
         volume=min(volume+5,200)
-        menu_volume(volume)
         player.audio_set_volume(volume)       
-                    
+        if STATE==0:
+            init_menu() 
+            
     if action=='vol-':
         volume=max(volume-5,0)
-        menu_volume(volume)
         player.audio_set_volume(volume)  
+        if STATE==0:
+            init_menu()       
+    
+        
+def veille():
+    global is_sleeping
+    
+    if not is_sleeping:
+        is_sleeping=True
+        save_params()
+     #   os.system("wlr-randr --output NOOP-1 --off")
+    else:        
+        is_sleeping=False
+     #   os.system("wlr-randr --output NOOP-1 --on")
+      
         
 os.system('sh remote.sh')
 
+is_sleeping=False
 now=datetime.now()
 lastnow=datetime.now()
 update=True 
@@ -554,7 +560,8 @@ GPIO.setup(swPin, GPIO.IN)
 player = vlc.MediaPlayer()
 player.set_mrl(url)
 ###########################################################
-maincolor='#FAAF2C'    
+#maincolor='#FAAF2C'    
+maincolor='black'    
 os.environ.__setitem__('DISPLAY', ':0.0')
 ###########################################################    
 #-------------création de l'interface graphique---------------
@@ -562,7 +569,7 @@ os.environ.__setitem__('DISPLAY', ':0.0')
 decal_x=410
 decal_y=360
 root=Tk()
-root.configure(bg='darkorchid4')
+root.configure(bg='black')
 helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
 window_height=350
 window_width=400
@@ -573,7 +580,7 @@ y_cordinate = int((screen_height/2) - (window_height/2))
 root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate+40, y_cordinate))
 content = ttk.Frame(root,style='new.TFrame')
 content.place(x=decal_x, y=decal_y, anchor="se", width=window_width, height=window_height)
-content.config(cursor="none")
+root.config(cursor="none")
 image=Image.open("38081587.jpg")
 image=image.resize((190,190),Image.Resampling.LANCZOS)
 image_tk=ImageTk.PhotoImage(image)
@@ -618,10 +625,11 @@ pwd=''
 def poll_for_data():
     global STATE,action
     global alarm_set,alarm_clck_hour,alarm_clck_min
-    global digit_sel,rep,usb_inifile,pwd
+    global digit_sel,rep,usb_inifile,pwd,volume
     global ST1_param,ST1_menu,ST2_param,ST2_menu,ST3_param,ST3_menu
     global ST4_param,ST4_menu,ST5_param,ST5_menu,ST6_param,ST6_menu
     global ST41_param,ST41_menu,ST_melodies,liste_melodies
+    global last_rotary_position
     
     #interface de commande#########################
     key=trig_ir(IR_param)
@@ -673,6 +681,9 @@ def poll_for_data():
             player.play()
             STATE=0
         init_menu(1)
+    
+    if action=='logout':
+        veille()
      
     match STATE:
         case 0:     #ecran d'accueil
@@ -1102,30 +1113,6 @@ def poll_for_data():
             if action=='back':
                 init_menu()
                               
- 
- 
-                
-     # case 100:#écran de veille
-            # if save:
-                # save_params()
-                # save=False
-            # now=datetime.now()
-            # deltat=now-lastnow
-            # if (deltat.microseconds>950000):
-                # if player.is_playing():
-                    # player.stop()
-                # draw=ImageDraw.Draw(image_blanche)
-                # draw.rectangle((0, 0, width, height), outline=0, fill=0)
-                # draw.text((50,2),time_var[1],font=font100,size=1,fill=0)  
-                # draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
-                # set_time()
-                # draw.text((50,2),time_var[1],font=font100,size=1,fill=1)  
-                # draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
-                # oled.image(image_blanche)               
-                # oled.show()
-                # lastnow=now
-            # if ((source=="IR") and (key==0) ):
-                # STATE=0
                 
     root.after(300, poll_for_data)
  
