@@ -125,25 +125,33 @@ def set_time():
      time_var.set(strftime('%H:%M:%S'))
      root.after(1000, set_time)
    
+def update_grid(idcolumn,arg,items):
+    change_style(arg)
+    for i in range(0,len(items)):
+        button[i].grid(column=idcolumn,row=arg[3]%arg[0]+i,padx=(0,0))
+    
 def liste_menus(arg,items): 
     global root
     global button
+    global liste_menu_style
+
     clear_all_inside_content()
  
-    arg[1]=arg[3]//arg[0]
-    arg[2]=arg[3]%arg[0]
     #arg:nb_lignes,shiftbloc,decal,fillindex    
     w=25
     button=[]
-    for i in range(0,arg[0]):
-        if i+arg[1]*arg[0]<len(items):
-            if i+arg[1]*arg[0]==arg[3] :
-                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='click.TButton'))
-                button[i].grid(column=0,row=i,padx=(0,0))                
-            else :
-                button.append(ttk.Button(content, text=items[i+arg[1]*arg[0]],width=w,style='TButton'))
-                button[i].grid(column=0,row=i,padx=(0,0))                
-  
+    button_style=[]
+    
+    for i in range(0,len(items)):
+      button_style.append(ttk.Style())
+      name=prefixe+str(i)+'.TButton'
+      button_style[i].configure(name,font=('Helvetica', 10),background='blue')
+
+    for i in range(0,len(items)):
+        name=prefixe+str(i)+'.TButton'
+        button.append(ttk.Button(content, text=items[i],width=w,style=name))
+    update_grid(0,arg,items)
+             
 def menu_wifi(): 
     global update_liste_wifi,STATE
     global ST5_param,ST5_menu
@@ -183,25 +191,29 @@ def menu_usb():
     global root,STATE
     global usb_button
     global update_usb
+    global button,button_style
     
     update_usb=True
 
     STATE=3
     clear_all_inside_content()
 
-    states_btn_ind=[0,0,0,0,0]
-    states_btn_ind[ST4_param[3]]=1
-    states_btn=['TButton','click.TButton']
+    button_style=[]   
+    for i in range(0,len(ST4_menu)):
+      button_style.append(ttk.Style())
+      name=prefixe+str(i)+'.TButton'
+      button_style[i].configure(name,font=('Helvetica', 10),background='blue')
   
     w=25
-    usb_button=[]
-    usb_button.append(ttk.Button(content, text=ST4_menu[0],width=w,style=states_btn[states_btn_ind[0]],command=usb_files))
-    usb_button.append(ttk.Button(content, text=ST4_menu[1],width=w,style=states_btn[states_btn_ind[1]],command=will_you_load_config))
-    usb_button.append(ttk.Button(content, text=ST4_menu[2],width=w,style=states_btn[states_btn_ind[2]],command=will_you_load_systeme))
+    button=[]
+    name=prefixe+str(0)+'.TButton'
+    button.append(ttk.Button(content, text=ST4_menu[0],width=w,style=name,command=usb_files))
+    name=prefixe+str(1)+'.TButton'
+    button.append(ttk.Button(content, text=ST4_menu[1],width=w,style=name,command=will_you_load_config))
+    name=prefixe+str(3)+'.TButton'
+    button.append(ttk.Button(content, text=ST4_menu[2],width=w,style=name,command=will_you_load_systeme))
 
-    usb_button[0].grid(column=0,row=0,padx=(3,0))
-    usb_button[1].grid(column=0,row=1,padx=(3,0))
-    usb_button[2].grid(column=0,row=2,padx=(3,0))
+    update_grid(0,ST4_param[3],ST4_menu)
     
 def activation_alarme():
    global root,STATE
@@ -271,42 +283,43 @@ def source_melodie():
 def menu_alarme(): 
     global ST3_param
     global root,STATE
-    global alarme_button
+    global button,button_style
 
     STATE=2
     clear_all_inside_content()
 
-    states_btn_ind=[0,0,0,0,0]
-    states_btn_ind[ST3_param[3]]=1
-    states_btn=['TButton','click.TButton']
+    button_style=[]   
+    for i in range(0,len(ST3_menu)):
+      button_style.append(ttk.Style())
+      name=prefixe+str(i)+'.TButton'
+      button_style[i].configure(name,font=('Helvetica', 10),background='blue')
   
     w=25
-    alarme_button=[]
-    alarme_button.append(ttk.Button(content, text=ST3_menu[0],width=w,style=states_btn[states_btn_ind[0]],command=activation_alarme))
-    alarme_button.append(ttk.Button(content, text=ST3_menu[1],width=w,style=states_btn[states_btn_ind[1]],command=reglage_alarme))
-    alarme_button.append(ttk.Button(content, text=ST3_menu[2],width=w,style=states_btn[states_btn_ind[2]],command=source_alarme))
-    alarme_button.append(ttk.Button(content, text=ST3_menu[3],width=w,style=states_btn[states_btn_ind[3]],command=source_melodie))
+    button=[]
+    name=prefixe+str(0)+'.TButton'
+    button.append(ttk.Button(content, text=ST3_menu[0],width=w,style=name,command=activation_alarme))
+    name=prefixe+str(1)+'.TButton'
+    button.append(ttk.Button(content, text=ST3_menu[1],width=w,style=name,command=reglage_alarme))
+    name=prefixe+str(2)+'.TButton'
+    button.append(ttk.Button(content, text=ST3_menu[2],width=w,style=name,command=button))
+    name=prefixe+str(3)+'.TButton'
+    button.append(ttk.Button(content, text=ST3_menu[3],width=w,style=name,command=source_melodie))
 
-    alarme_button[0].grid(column=0,row=0,padx=(3,0))
-    alarme_button[1].grid(column=0,row=1,padx=(3,0))
-    alarme_button[2].grid(column=0,row=2,padx=(3,0))
-    alarme_button[3].grid(column=0,row=3,padx=(3,0))
+    update_grid(0,ST3_param[3],ST3_menu)
  
-def change_style(pref,arg):
-    name=pref+str(arg)+'.TButton'
-    if pref=='init_menu':
-        if init_menu_style[arg].lookup(name,'background')=='blue':
+def change_style(arg):
+    global button_style
+        if button_style[arg].lookup(name,'background')=='blue':
             color='yellow'
         else:
             color='blue'
-        init_menu_style[arg].configure(name, background=color)
-        init_menu_style[arg].map(name, background=[('active', color)])
+        button_style[arg].configure(name, background=color)
+        button_style[arg].map(name, background=[('active', color)])
     
 def init_menu(): 
     global root,STATE
-    global init_button
     global update_liste_wifi
-    global init_menu_style,prefixe_init_menu
+    global button,button_style
 
     STATE=0
     save_params()
@@ -314,45 +327,35 @@ def init_menu():
     clear_all_inside_content()
 
     canvas=ttk.Label(content,image=image_tk)
-
-    watch=ttk.Label(content,font=('Arial', 30, 'bold'),textvar=time_var,background='black',foreground="yellow")
-    
+    watch=ttk.Label(content,font=('Arial', 30, 'bold'),textvar=time_var,background='black',foreground="yellow")    
     volume_bar=ttk.Progressbar(content, length=200, orient='horizontal', value=volume, mode='determinate',maximum=200)
- 
-    
-    init_menu_style=[]
-    for i in range(5):
-     init_menu_style.append(ttk.Style())
-     name=prefixe_init_menu+str(i)+'.TButton'
-     if i==ST1_param[3]:
-        init_menu_style[i].configure(name,font=('Helvetica', 10),background='yellow')
-     else:
-        init_menu_style[i].configure(name,font=('Helvetica', 10),background='blue')
- 
+      
     w=12
     
     update_liste_wifi=True
     
-    init_button=[]
-    name=prefixe_init_menu+str(0)+'.TButton'
-    init_button.append(ttk.Button(content, text='WEB STATIONS',width=w,style=name,command=liste_radios))
-    name=prefixe_init_menu+str(1)+'.TButton'
-    init_button.append(ttk.Button(content, text='ALARME',width=w,style=name,command=menu_alarme))
-    name=prefixe_init_menu+str(2)+'.TButton'
-    init_button.append(ttk.Button(content, text='USB',width=w,style=name,command=menu_usb))
-    name=prefixe_init_menu+str(3)+'.TButton'
-    init_button.append(ttk.Button(content, text='WIFI',width=w,style=name,command=menu_wifi))
-    name=prefixe_init_menu+str(4)+'.TButton'
-    init_button.append(ttk.Button(content, text='ADRESSE IP',width=w,style=name,command=menu_ip))
+    button_style=[]   
+    for i in range(0,len(ST1_menu)):
+      button_style.append(ttk.Style())
+      name=prefixe+str(i)+'.TButton'
+      button_style[i].configure(name,font=('Helvetica', 10),background='blue')
+
+    button=[]
+    name=prefixe+str(0)+'.TButton'
+    button.append(ttk.Button(content, text=ST1_menu[0],width=w,style=name,command=liste_radios))
+    name=prefixe+str(1)+'.TButton'
+    button.append(ttk.Button(content, text=ST1_menu[1],width=w,style=name,command=menu_alarme))
+    name=prefixe+str(2)+'.TButton'
+    button.append(ttk.Button(content, text=ST1_menu[2],width=w,style=name,command=menu_usb))
+    name=prefixe+str(3)+'.TButton'
+    button.append(ttk.Button(content, text=ST1_menu[3],width=w,style=name,command=menu_wifi))
+    name=prefixe+str(4)+'.TButton'
+    button.append(ttk.Button(content, text=ST1_menu[4],width=w,style=name,command=menu_ip))
 
     canvas.grid(column=0, row=0,rowspan=5)
     watch.grid(column=0,row=5)
     volume_bar.grid(column=1,row=5)
-    init_button[0].grid(column=1,row=0,padx=(3,0))
-    init_button[1].grid(column=1,row=1,padx=(3,0))
-    init_button[2].grid(column=1,row=2,padx=(3,0))
-    init_button[3].grid(column=1,row=3,padx=(3,0))
-    init_button[4].grid(column=1,row=4,padx=(3,0))    
+    update_grid(1,ST1_param[3],ST1_menu)
 
 def liste_radios(): 
     global root,STATE
@@ -515,7 +518,7 @@ def veille():
 os.system('sh remote.sh')
 
 ##########################################################
-prefixe_init_menu='init_menu'
+prefixe='button_style'
 is_sleeping=False
 now=datetime.now()
 lastnow=datetime.now()
@@ -618,7 +621,7 @@ ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
 
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
+ST1_menu=["WEB STATIONS","ALARME","USB","WIFI","ADRESSE IP"]
 ST2_param=[6,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
@@ -709,16 +712,19 @@ def poll_for_data():
     match STATE:
         case 0:     #ecran d'accueil
             if action=='arrow-':
+                update_grid(1,ST1_param[3],ST1_menu)
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
                     ST1_param[3]=0                
-                change_style(prefixe_init_menu,ST1_param[3])
+                update_grid(1,ST1_param[3],ST1_menu)
                  
             if action=='arrow+':
+                update_grid(1,ST1_param[3],ST1_menu)
                 ST1_param[3]=ST1_param[3]-1
                 if ST1_param[3]<0:
                     ST1_param[3]=len(ST1_menu)-1
                 change_style(prefixe_init_menu,ST1_param[3])
+                update_grid(1,ST1_param[3],ST1_menu)
                 
             if action[0:6]=='select':
                 init_button[ST1_param[3]].invoke()
@@ -732,6 +738,7 @@ def poll_for_data():
             set_volume()
                     
             if action=='scroll':
+                update_grid(1,ST1_param[3],ST1_menu)
                 if key>last_rotary_position:
                     ST1_param[3]=ST1_param[3]+1
                 if key<last_rotary_position:
@@ -741,7 +748,7 @@ def poll_for_data():
                 if ST1_param[3]<0:
                     ST1_param[3]=len(ST1_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                change_style(prefixe_init_menu,ST1_param[3])
+                update_grid(1,ST1_param[3],ST1_menu)
                 
         case 1:     #web radio
             if action=='home':
@@ -751,16 +758,18 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
+                update_grid(0,ST2_param[3],ST2_menu)
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
-                liste_radios()
+                update_grid(0,ST2_param[3],ST2_menu)
                  
             if action=='arrow+':
+                update_grid(0,ST2_param[3],ST2_menu)
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
-                liste_radios()
+                update_grid(0,ST2_param[3],ST2_menu)
                 
             if action=='select':
                 url=liste_url[ST2_param[3]]
@@ -769,6 +778,7 @@ def poll_for_data():
                 player.play()  
                 
             if action=='scroll':
+                update_grid(0,ST2_param[3],ST2_menu)
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -778,7 +788,7 @@ def poll_for_data():
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                liste_radios()
+                update_grid(0,ST2_param[3],ST2_menu)
  
             set_volume()
  
@@ -790,18 +800,21 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
+                update_grid(0,ST3_param[3],ST3_menu)
                 ST3_param[3]=ST3_param[3]+1
                 if ST3_param[3]>len(ST3_menu)-1:
                     ST3_param[3]=0
-                menu_alarme()
+                update_grid(0,ST3_param[3],ST3_menu)
                  
             if action=='arrow+':
+                update_grid(0,ST3_param[3],ST3_menu)
                 ST3_param[3]=ST3_param[3]-1
                 if ST3_param[3]<0:
                     ST3_param[3]=len(ST3_menu)-1
-                menu_alarme()
+                update_grid(0,ST3_param[3],ST3_menu)
                                
             if action=='scroll':
+                update_grid(0,ST3_param[3],ST3_menu)
                 if key>last_rotary_position:
                     ST3_param[3]=ST3_param[3]+1
                 if key<last_rotary_position:
@@ -811,7 +824,7 @@ def poll_for_data():
                 if ST3_param[3]<0:
                     ST3_param[3]=len(ST3_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                menu_alarme()
+                update_grid(0,ST3_param[3],ST3_menu)
  
             set_volume()
 
@@ -875,21 +888,24 @@ def poll_for_data():
                 menu_alarme()
 
             if action=='arrow-':
+                update_grid(0,ST2_param[3],ST2_menu)
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
-                source_alarme()
+                update_grid(0,ST2_param[3],ST2_menu)
                  
             if action=='arrow+':
+                update_grid(0,ST2_param[3],ST2_menu)
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
-                source_alarme()
+                update_grid(0,ST2_param[3],ST2_menu)
                 
             if action=='select':
                 alarm_source=liste_url[ST2_param[3]] 
                 
             if action=='scroll':
+                update_grid(0,ST2_param[3],ST2_menu)
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -899,7 +915,7 @@ def poll_for_data():
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                source_alarme()
+                update_grid(0,ST2_param[3],ST2_menu)
                 
         case 24:    #selection source melodie
             if action=='home':
@@ -909,21 +925,24 @@ def poll_for_data():
                 menu_alarme()
 
             if action=='arrow-':
+                update_grid(0,ST_melodies[3],liste_melodies)
                 ST_melodies[3]=ST_melodies[3]+1
                 if ST_melodies[3]>len(liste_melodies)-1:
                     ST_melodies[3]=0
-                source_melodie()
+                update_grid(0,ST_melodies[3],liste_melodies)
                  
             if action=='arrow+':
+                update_grid(0,ST_melodies[3],liste_melodies)
                 ST_melodies[3]=ST_melodies[3]-1
                 if ST_melodies[3]<0:
                     ST_melodies[3]=len(liste_melodies)-1
-                source_melodie()
+                update_grid(0,ST_melodies[3],liste_melodies)
                 
             if action=='select':
                 alarm_source=liste_melodies[ST_melodies[3]]
                 
             if action=='scroll':
+                update_grid(0,ST_melodies[3],liste_melodies)
                 if key>last_rotary_position:
                     ST_melodies[3]=ST_melodies[3]+1
                 if key<last_rotary_position:
@@ -933,7 +952,7 @@ def poll_for_data():
                 if ST_melodies[3]<0:
                     ST_melodies[3]=len(liste_melodies)-1
                 last_rotary_position=ROTARY_param[3]
-                source_melodie()                
+                update_grid(0,ST_melodies[3],liste_melodies)
                   
         case 3:     #USB
             if action=='home':
@@ -943,18 +962,21 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
+                update_grid(0,ST4_param[3],ST4_menu)
                 ST4_param[3]=ST4_param[3]+1
                 if ST4_param[3]>len(ST4_menu)-1:
                     ST4_param[3]=0
-                menu_usb()
+                update_grid(0,ST4_param[3],ST4_menu)
                  
             if action=='arrow+':
+                update_grid(0,ST4_param[3],ST4_menu)
                 ST4_param[3]=ST4_param[3]-1
                 if ST4_param[3]<0:
                     ST4_param[3]=len(ST4_menu)-1
-                menu_usb()
+                update_grid(0,ST4_param[3],ST4_menu)
                                
             if action=='scroll':
+                update_grid(0,ST4_param[3],ST4_menu)
                 if key>last_rotary_position:
                     ST4_param[3]=ST4_param[3]+1
                 if key<last_rotary_position:
@@ -964,7 +986,7 @@ def poll_for_data():
                 if ST4_param[3]<0:
                     ST4_param[3]=len(ST4_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                menu_usb()
+                update_grid(0,ST4_param[3],ST4_menu)
  
             set_volume()
 
@@ -981,18 +1003,20 @@ def poll_for_data():
                 menu_usb()
                 
             if action=='arrow-':
+                update_grid(0,ST41_param[3],ST41_menu)
                 ST41_param[3]=ST41_param[3]+1
                 if ST41_param[3]>len(ST41_menu)-1:
                     ST41_param[3]=0
                 update_usb=False
-                usb_files()
+                update_grid(0,ST41_param[3],ST41_menu)
                  
             if action=='arrow+':
+                update_grid(0,ST41_param[3],ST41_menu)
                 ST41_param[3]=ST41_param[3]-1
                 if ST41_param[3]<0:
                     ST41_param[3]=len(ST41_menu)-1
                 update_usb=False
-                usb_files()
+                update_grid(0,ST41_param[3],ST41_menu)
                 
             if action=='select':
                 url=liste_url[ST41_param[3]]
@@ -1001,6 +1025,7 @@ def poll_for_data():
                 player.play()  
                 
             if action=='scroll':
+                update_grid(0,ST41_param[3],ST41_menu)
                 if key>last_rotary_position:
                     ST41_param[3]=ST41_param[3]+1
                 if key<last_rotary_position:
@@ -1011,7 +1036,7 @@ def poll_for_data():
                     ST41_param[3]=len(ST41_menu)-1
                 last_rotary_position=ROTARY_param[3]
                 update_usb=False
-                usb_files()
+                update_grid(0,ST41_param[3],ST41_menu)
  
         case 32:    #MAJ USB
             if action=='home':
@@ -1057,18 +1082,19 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
+                update_grid(0,ST5_param[3],ST5_menu)
                 ST5_param[3]=ST5_param[3]+1
                 if ST5_param[3]>len(ST5_menu)-1:
                     ST5_param[3]=0
                 update_liste_wifi=False
-                menu_wifi()
+                update_grid(0,ST5_param[3],ST5_menu)
                  
             if action=='arrow+':
-                ST5_param[3]=ST5_param[3]-1
+                update_grid(0,ST5_param[3],ST5_menu)
                 if ST5_param[3]<0:
                     ST5_param[3]=len(ST5_menu)-1
                 update_liste_wifi=False
-                menu_wifi()
+                update_grid(0,ST5_param[3],ST5_menu)
                 
             if action=='select':
                 pwd=passwd
@@ -1076,6 +1102,7 @@ def poll_for_data():
                 set_passwd()
                 
             if action=='scroll':
+                update_grid(0,ST5_param[3],ST5_menu)
                 if key>last_rotary_position:
                     ST5_param[3]=ST5_param[3]+1
                 if key<last_rotary_position:
@@ -1086,7 +1113,7 @@ def poll_for_data():
                     ST5_param[3]=len(ST5_menu)-1
                 last_rotary_position=ROTARY_param[3]
                 update_liste_wifi=False
-                menu_wifi()
+                update_grid(0,ST5_param[3],ST5_menu)
 
         case 41:     #WIFI set passwd
             if action=='home':
