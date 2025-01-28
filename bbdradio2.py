@@ -126,10 +126,17 @@ def set_time():
      root.after(1000, set_time)
    
 def update_grid(idcolumn,arg,items):
-    change_style(arg)
+    s=arg[3]//arg[0]
+    t=arg[3]%arg[0]
     for i in range(0,len(items)):
-        button[i].grid(column=idcolumn,row=arg[3]%arg[0]+i,padx=(0,0))
-    
+           button[i].grid_forget()
+
+    for i in range(s*arg[0],(s+1)*arg[0]):
+        if i<len(items):
+          s0=i-s*arg[0]
+          print(s0,i)
+          button[i].grid(column=idcolumn,row=s0,padx=(0,0))
+          
 def liste_menus(arg,items): 
     global root
     global button
