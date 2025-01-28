@@ -1113,18 +1113,20 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
-                update_grid(0,ST5_param,ST5_menu)
+                change_style(ST5_param[3])
                 ST5_param[3]=ST5_param[3]+1
                 if ST5_param[3]>len(ST5_menu)-1:
                     ST5_param[3]=0
                 update_liste_wifi=False
+                change_style(ST5_param[3])
                 update_grid(0,ST5_param,ST5_menu)
                  
             if action=='arrow+':
-                update_grid(0,ST5_param,ST5_menu)
+                change_style(ST5_param[3])
                 if ST5_param[3]<0:
                     ST5_param[3]=len(ST5_menu)-1
                 update_liste_wifi=False
+                change_style(ST5_param[3])
                 update_grid(0,ST5_param,ST5_menu)
                 
             if action=='select':
@@ -1133,7 +1135,7 @@ def poll_for_data():
                 set_passwd()
                 
             if action=='scroll':
-                update_grid(0,ST5_param,ST5_menu)
+                change_style(ST5_param[3])
                 if key>last_rotary_position:
                     ST5_param[3]=ST5_param[3]+1
                 if key<last_rotary_position:
@@ -1144,6 +1146,7 @@ def poll_for_data():
                     ST5_param[3]=len(ST5_menu)-1
                 last_rotary_position=ROTARY_param[3]
                 update_liste_wifi=False
+                change_style(ST5_param[3])
                 update_grid(0,ST5_param,ST5_menu)
 
         case 41:     #WIFI set passwd
@@ -1198,4 +1201,4 @@ def poll_for_data():
 root.after(300, poll_for_data)
 root.mainloop()
 
-#28/01/2025 21:33
+#28/01/2025 21:43
