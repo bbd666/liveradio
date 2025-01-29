@@ -15,7 +15,7 @@ import re
 import shutil
 import evdev
 import RPi.GPIO as GPIO
-import shutil
+
 
 
 def what_wifi():
