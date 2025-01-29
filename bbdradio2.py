@@ -774,19 +774,20 @@ def poll_for_data():
                 init_menu()
                 
             if action=='arrow-':
-#                change_style(ST2_param[3])
+                change_style(ST2_param[3])
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
- #               change_style(ST2_param[3])
- #               update_grid(0,ST2_param,ST2_menu)
-                liste_radios()
+                change_style(ST2_param[3])
+                update_grid(0,ST2_param,ST2_menu)
                  
             if action=='arrow+':
+                change_style(ST2_param[3])
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
-                liste_radios()
+                change_style(ST2_param[3])
+                update_grid(0,ST2_param,ST2_menu)
                  
             if action=='select':
                 url=liste_url[ST2_param[3]]
@@ -795,6 +796,7 @@ def poll_for_data():
                 player.play()  
                 
             if action=='scroll':
+                change_style(ST2_param[3])
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -804,7 +806,8 @@ def poll_for_data():
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 last_rotary_position=ROTARY_param[3]
-                liste_radios()
+                change_style(ST2_param[3])
+                update_grid(0,ST2_param,ST2_menu)
   
             set_volume()
  
@@ -1201,4 +1204,4 @@ def poll_for_data():
 root.after(300, poll_for_data)
 root.mainloop()
 
-#28/01/2025 21:43
+#29/01/2025 10:03
