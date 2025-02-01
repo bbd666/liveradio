@@ -15,8 +15,9 @@ import re
 import shutil
 import evdev
 import RPi.GPIO as GPIO
+#import pyautogui
 
-
+#pyautogui.moveTo(10, 200)  
 
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
@@ -56,30 +57,17 @@ def get_ir_device():
         if (device.name == "gpio_ir_recv"):           
             return device          
 
-def trig_ir(arg):
+def trig_ir():
+    global last_call
     event = dev.read_one()
     result=None
     if (event) :
         a = event.value
-        if not(a==0):
-            result= a
-            arg[3]=0
-        else:
-            if arg[3]==1:
-                result=a
-                arg[3]=0
-            else:
-                result=None
-                arg[3]=1
-    else:
-        arg[3]=0
-    if not(result==None):
-        last_result=result
-        arg[2] = time.perf_counter()
-        if not(last_result==arg[0]) or (arg[2]-arg[1])>1:
-            arg[1] = time.perf_counter()
-            arg[0]=last_result
-            return result
+        if not(event.code==0):
+           t=time.perf_counter()
+           if t-last_call>1:
+            last_call=t
+            return a
 
 def Keypad4x4Read(cols,rows):
 #Define Matrix Keypad read function
@@ -128,10 +116,11 @@ def set_time():
 def update_grid(idcolumn,arg,items):
     s=arg[3]//arg[0]
     t=arg[3]%arg[0]
-    for i in range(0,len(items)):
+    if t==0:
+     for i in range(0,len(items)):
            button[i].grid_forget()
 
-    for i in range(s*arg[0],(s+1)*arg[0]):
+     for i in range(s*arg[0],(s+1)*arg[0]):
         if i<len(items):
           s0=i-s*arg[0]
           button[i].grid(column=idcolumn,row=s0,padx=(0,0))
@@ -151,10 +140,11 @@ def liste_menus(arg,items):
       button_style.append(ttk.Style())
       name=prefixe+str(i)+'.TButton'
       button_style[i].configure(name,font=('Helvetica', 20),background='blue')
+      button_style[i].map(name,foreground=[("disabled", "black")],background=[("disabled", "blue")])
 
     for i in range(0,len(items)):
         name=prefixe+str(i)+'.TButton'
-        button.append(ttk.Button(content, text=items[i],width=w,style=name))
+        button.append(ttk.Button(content, text=items[i],width=w,state='disabled',style=name))
     if len(items)>0:
         change_style(arg[3])
         update_grid(0,arg,items)
@@ -528,7 +518,6 @@ def veille():
       
         
 os.system('sh remote.sh')
-
 ##########################################################
 prefixe='button_style'
 is_sleeping=False
@@ -598,7 +587,8 @@ player.set_mrl(url)
 ###########################################################
 #maincolor='#FAAF2C'    
 maincolor='black'    
-os.environ.__setitem__('DISPLAY', ':0.0')
+#os.environ.__setitem__('DISPLAY', ':0')
+os.environ['DISPLAY'] = ':0'
 ###########################################################    
 #-------------création de l'interface graphique---------------
 #Création de la fenêtre et de son titre
@@ -611,6 +601,8 @@ helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
 window_height=350
 window_width=400
 
+style_1 = ttk.Style()
+style_1.configure('TFrame',background='black')    
 screen_width=root.winfo_screenwidth()
 screen_height=root.winfo_screenheight()
 x_cordinate = int((screen_width/2) - (window_width/2))
@@ -622,12 +614,7 @@ root.config(cursor="none")
 image=Image.open("38081587.jpg")
 image=image.resize((190,190),Image.Resampling.LANCZOS)
 image_tk=ImageTk.PhotoImage(image)
-style_1 = ttk.Style()
-style_1.configure('TFrame',background='black')    
-style_2 = ttk.Style()
-style_2.configure('TButton', font=('Helvetica', 20),background='blue')
-style_3 = ttk.Style()
-style_3.configure('click.TButton', font=('Helvetica', 20),background='yellow')
+last_call=0
 time_var = StringVar() 
 set_time() 
 IR_param=[-100,time.perf_counter(),0,0]
@@ -660,6 +647,7 @@ action=''
 usb_inifile=''
 pwd=''
 
+
 def poll_for_data():
     global STATE,action
     global alarm_set,alarm_clck_hour,alarm_clck_min
@@ -670,7 +658,7 @@ def poll_for_data():
     global last_rotary_position
     
     #interface de commande#########################
-    key=trig_ir(IR_param)
+    key=trig_ir()
     source="IR"
     if key==None: 
         key=Keypad4x4Read(col_list, row_list)
@@ -684,9 +672,7 @@ def poll_for_data():
             else:
                 source=""
      
-    if not(key==None):
-        print(source)
-        print(key)  
+
      
     action=''
     if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key==6)) ) :
@@ -720,8 +706,8 @@ def poll_for_data():
             STATE=0
         init_menu(1)
     
-    if action=='logout':
-        veille()
+#    if action=='logout':
+#        exit()
      
     match STATE:
         case 0:     #ecran d'accueil
