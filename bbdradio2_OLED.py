@@ -29,7 +29,7 @@ lastnow=datetime.now()
 update=True 
 update_usb=True      
 
-liste=os.listdir("/home/pierre/Documents")
+liste=os.listdir("/home/pierre")
 liste_melodies=[]
 for f in liste:
     extension = os.path.splitext(f)[1]
@@ -375,7 +375,7 @@ def load_config(arg):
     if p.is_mount():
         my_file = p/arg
         if my_file.is_file():
-         my_file_target="/home/pierre/Documents/"+arg
+         my_file_target="/home/pierre/"+arg
          shutil.copy(my_file,my_file_target)
          return 1
         else:
