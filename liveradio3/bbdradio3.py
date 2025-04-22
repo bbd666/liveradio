@@ -39,6 +39,13 @@ url=liste_url[channel_ini]
 protocole='rc-5'
 protocole=config['REMOTE']['PRTCL']
 
+def get_ir_device():
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    for device in devices:
+        if (device.name == "gpio_ir_recv"):           
+            return device          
+dev = get_ir_device()
+
 if protocole=='nec':
     os.system('sh remote_nec.sh')
 if protocole=='rc-5':
@@ -96,13 +103,6 @@ def connect_to_saved(ssid: str):
     subprocess.call(['nmcli', 'c', 'up', ssid])
     return is_connected_to(ssid)
    
-def get_ir_device():
-    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-    for device in devices:
-        if (device.name == "gpio_ir_recv"):           
-            return device          
-dev = get_ir_device()
-
 def trig_ir():
     global last_call
     event = dev.read_one()
