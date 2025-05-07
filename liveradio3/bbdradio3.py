@@ -410,6 +410,7 @@ STATE=0
 digit_sel=0
 last_rotary_position=ROTARY_param[3]
 last_call=0
+action=''
 
 try:
  while True:
@@ -587,6 +588,9 @@ try:
                 STATE=6         #IP
  
             if (action=='back') : 
+                STATE=0   
+                
+            if (action=='home') : 
                 STATE=0   
                 
             if  (action=='logout' ):
