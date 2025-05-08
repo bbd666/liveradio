@@ -332,6 +332,9 @@ def scan_USB_files():
     global usb_path
     global mount_path 
     global mp3_files
+    os.system('sh get_usb_dev.sh')
+    f=open("dev_usb.txt")
+    usb_path=f.readline().strip('\n')
     audio_ext = [".mp3" ,".ogg", ".flac", ".wav"]
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
@@ -343,12 +346,15 @@ def scan_USB_files():
 def load_config(arg):
     global usb_path
     global mount_path 
+    os.system('sh get_usb_dev.sh')
+    f=open("dev_usb.txt")
+    usb_path=f.readline().strip('\n')
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
     if p.is_mount():
         my_file = p/arg
         if my_file.is_file():
-         my_file_target="/home/pierre/Documents/"+arg
+         my_file_target="/home/pierre/"+arg
          shutil.copy(my_file,my_file_target)
          return 1
         else:
@@ -1002,7 +1008,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("data.ini")
+                    err=load_config("bbdradio3.py")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1051,7 +1057,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("bbdradio.py")
+                    err=load_config("data.ini")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)

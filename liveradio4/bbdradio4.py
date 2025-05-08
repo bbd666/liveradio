@@ -328,6 +328,9 @@ def scan_USB_files():
     global usb_path
     global mount_path 
     global mp3_files
+    os.system('sh get_usb_dev.sh')
+    f=open("dev_usb.txt")
+    usb_path=f.readline().strip('\n')
     audio_ext = [".mp3" ,".ogg", ".flac", ".wav"]
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
@@ -339,12 +342,15 @@ def scan_USB_files():
 def load_config(arg):
     global usb_path
     global mount_path 
+    os.system('sh get_usb_dev.sh')
+    f=open("dev_usb.txt")
+    usb_path=f.readline().strip('\n')
     subprocess.run(["sudo", "mount", usb_path, mount_path])
     p = Path(mount_path)
     if p.is_mount():
         my_file = p/arg
         if my_file.is_file():
-         my_file_target="/home/pierre/Documents/"+arg
+         my_file_target="/home/pierre/"+arg
          shutil.copy(my_file,my_file_target)
          return 1
         else:
@@ -386,8 +392,7 @@ ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
    
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","ADRESSE IP"]
-#ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
+ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
 ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
@@ -576,12 +581,11 @@ try:
                 update=True
                 STATE=5         #wifi                              
                 
-            # if (ST1_param[3]==3 and (action=='select')) :
-                # update=True
-                # STATE=4         #USB
-                
             if (ST1_param[3]==3 and (action=='select')) :
-            # if (ST1_param[3]==4 and (action=='select')) :
+                update=True
+                STATE=4         #USB
+                
+            if (ST1_param[3]==4 and (action=='select')) :
                 update=True
                 STATE=6         #IP
  

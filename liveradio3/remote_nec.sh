@@ -1,0 +1,1 @@
+sudo /usr/bin/ir-keytable -p nec -s rc1
