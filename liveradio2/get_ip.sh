@@ -1,0 +1,1 @@
+sudo ifconfig wlan0 | awk '{if ($1=="inet") {print $2}}' > ip.txt

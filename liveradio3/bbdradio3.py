@@ -14,7 +14,6 @@ from datetime import datetime
 import os
 import subprocess
 from pathlib import Path
-import re
 import shutil
 import busio
 
@@ -1179,17 +1178,16 @@ try:
  
      case 6:#menu IP
             if update:
-                cmd = "ifconfig wlan0 | grep 'inet '"
-                ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                output = ps.communicate()[0]
-                output= output.decode("utf-8")
-                output = re.split("inet",output)
-                output=output[1]
-                output = re.split("netmask",output)
+              try:
+                os.system('sh get_ip.sh')
+                f=open("ip.txt")
+                ip=f.readline().strip('\n')
                 ST6_menu=[]
-                ST6_menu.append(output[0])
+                ST6_menu.append(ip)
                 init_menu(ST6_param,ST6_menu)
-                
+              except:
+                print('error')
+                STATE=1                   
             if (action=='back') : 
                 update=True
                 STATE=1 
