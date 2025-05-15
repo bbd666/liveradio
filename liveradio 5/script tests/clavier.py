@@ -11,7 +11,7 @@ import time
 # define PINs according to cabling
 # following array matches 1,2,3,4 PINs from 4x4 Keypad Matrix
 #boutons 30,31,32
-row_list=[11,17,9]
+row_list=[9,17,11]
 # following array matches 5,6,7,8 PINs from 4x4 Keypad Matrix
 #boutons 33,34,35
 col_list=[22,27,4]
