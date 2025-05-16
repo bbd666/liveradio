@@ -1,3 +1,4 @@
+
 import vlc
 import time
 import board
@@ -20,23 +21,27 @@ import busio
 #Load URL's from the database
 config = configparser.ConfigParser()
 config.read('data.ini')
-nb=config['STREAMS']['NB']
+nb=config['STREAMS']['nb']
 liste_url=[]
 liste_lbl=[]
 for i in range(1,int(nb)+1):
-  liste_url.append(config['STREAMS']['URL'+str(i)])
-  liste_lbl.append(config['STREAMS']['LBL'+str(i)])
+  liste_url.append(config['STREAMS']['url'+str(i)])
+  liste_lbl.append(config['STREAMS']['lbl'+str(i)])
 volume=int(config['RADIO SETTINGS']['volume'])
 channel_ini=int(config['RADIO SETTINGS']['index'])
-ssid=config['WIFI']['SSID']
-passwd=config['WIFI']['PASSWD']
-alarm_set=int(config['ALARM']['SET'])
-alarm_clck_hour=int(config['ALARM']['HOUR'])
-alarm_clck_min=int(config['ALARM']['MIN'])
-alarm_source=config['ALARM']['SOURCE']
+dtPin=int(config['RADIO SETTINGS']['pin_dt'])
+clkPin=int(config['RADIO SETTINGS']['pin_clk'])
+swPin=int(config['RADIO SETTINGS']['pin_sw'])
+
+ssid=config['WIFI']['ssid']
+passwd=config['WIFI']['passwd']
+alarm_set=int(config['ALARM']['set'])
+alarm_clck_hour=int(config['ALARM']['hour'])
+alarm_clck_min=int(config['ALARM']['min'])
+alarm_source=config['ALARM']['source']
 url=liste_url[channel_ini]
 protocole='rc-5'
-protocole=config['REMOTE']['PRTCL']
+protocole=config['REMOTE']['prtcl']
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -45,7 +50,7 @@ def get_ir_device():
             return device          
 dev = get_ir_device()
 
-if protocole=='nec':
+if (protocole=='nec') or (protocole=='keyes'):
     os.system('sh remote_nec.sh')
 if protocole=='rc-5':
     os.system('sh remote_rc5.sh')
@@ -114,6 +119,15 @@ def trig_ir():
             last_call=t
             return a
 
+# define PINs according to cabling
+# following array matches 1,2,3,4 PINs from 4x4 Keypad Matrix
+#boutons 30,31,32
+# following array matches 5,6,7,8 PINs from 4x4 Keypad Matrix
+#boutons 33,34,35
+
+
+# set row pins to output, all to high
+GPIO.setmode(GPIO.BCM)
 #poussoirs
 GPIO.setup(17, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(15, GPIO.IN, pull_up_down = GPIO.PUD_UP)
@@ -128,33 +142,35 @@ def clavier():
     appui=None
     etat=GPIO.input(17)
     if (etat==GPIO.LOW):
-       appui=7
+       appui='3'
     etat=GPIO.input(15)
     if (etat==GPIO.LOW):
-       appui=8
+       appui='6'
     etat=GPIO.input(23)
     if (etat==GPIO.LOW):
-       appui=9
+       appui='9'
     etat=GPIO.input(22)
     if (etat==GPIO.LOW):
-       appui=4
+       appui='2'
     etat=GPIO.input(24)
     if (etat==GPIO.LOW):
-       appui=5
+       appui='5'
     etat=GPIO.input(8)
     if (etat==GPIO.LOW):
-       appui=6
+       appui='8'
     etat=GPIO.input(25)
     if (etat==GPIO.LOW):
-       appui=1
+       appui='1'
     etat=GPIO.input(9)
     if (etat==GPIO.LOW):
-       appui=1
+       appui='4'
     etat=GPIO.input(5)
     if (etat==GPIO.LOW):
-       appui=3
+       appui='7'
+    if not(appui==None):
+       sleep(0.3)
     return appui
-       
+
 time_var=["",""]
 date_var=["",""] 
    
@@ -166,23 +182,19 @@ def set_time(arg):
     date_var[arg] = now.strftime("%d/%m/%Y")      
                   
 #Rotary encounter parameters
-clkPin = 16    # CLK Pin
-dtPin = 21    # DT Pin
-swPin = 20    # Button Pin
-#rotary encounter GPIO        
+#borne 37
+# CLK Pin
+#borne 38
+# DT Pin
+#borne 36
+# Button Pin
+#Rotary encounter GPIO        
 GPIO.setup(clkPin, GPIO.IN)    # input mode
 GPIO.setup(dtPin, GPIO.IN)
 GPIO.setup(swPin, GPIO.IN)
 
 def rotaryDeal(arg):
    arg[1] = GPIO.input(dtPin)
-   det=GPIO.input(swPin)
-   if (det==0):
-        global globalCounter      
-        arg[3] = 0
-        arg[4]=0
-   else:
-        arg[4]=-1
    while(not GPIO.input(clkPin)):
     arg[2] = GPIO.input(dtPin)
     arg[0] = 1
@@ -315,14 +327,14 @@ def save_params():
     global alarm_source
     sind=str(volume)
     schannel=str(channel_ini)
-    config.set('RADIO SETTINGS', 'INDEX', schannel)
-    config.set('RADIO SETTINGS', 'VOLUME',sind )
-    config.set('ALARM', 'SET',str(alarm_set) )
-    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
-    config.set('ALARM', 'MIN',str(alarm_clck_min) )
-    config.set('ALARM', 'SOURCE',alarm_source )
-    config.set('WIFI', 'SSID',ssid )
-    config.set('WIFI', 'PASSWD',passwd )
+    config.set('RADIO SETTINGS', 'index', schannel)
+    config.set('RADIO SETTINGS', 'volume',sind )
+    config.set('ALARM', 'set',str(alarm_set) )
+    config.set('ALARM', 'hour',str(alarm_clck_hour) )
+    config.set('ALARM', 'min',str(alarm_clck_min) )
+    config.set('ALARM', 'source',alarm_source )
+    config.set('WIFI', 'ssid',ssid )
+    config.set('WIFI', 'passwd',passwd )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
         
@@ -361,11 +373,16 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])
-   
+  
+#------------------------- protocole I2C-------------------------------------------------------------------  
 SCL=3
 SDA=2
 i2c = busio.I2C(SCL, SDA)
 oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+#------------------------- protocole SPI-------------------------------------------------------------------  
+#oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
+#----------------------------------------------------------------------------------------------------------  
+
 oled.fill(0) #clear the OLED Display 
 oled.show()  
 font=ImageFont.load_default()  
@@ -423,17 +440,26 @@ try:
     key=trig_ir()
     source="IR"
     if key==None: 
-     key=clavier()
-     source="clavier"
+        key=clavier()
+        source="clavier"
+
+    det=GPIO.input(swPin)
+    if (det==0):
+         globalCounter=0      
+         source="rotary"
+         key=0
+         ROTARY_param[4]=0
+         sleep(0.3)
+
     if (key==None):       
         counter=ROTARY_param[3]
         rotaryDeal(ROTARY_param)
         if not(counter==ROTARY_param[3]):
          source="rotary"
          key=ROTARY_param[3]
+         ROTARY_param[4]=-1
         else:
-         source=""
-         
+         source=""        
 
     if not(key==None):
         print(source)
@@ -441,7 +467,7 @@ try:
     
     if protocole=='rc-5':
         action=''
-        if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key==6)) ) :
+        if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
         if  ((source=="IR") and (key==0) ):
             action='logout'
@@ -453,7 +479,7 @@ try:
             action='vol+'
         if ( (source=="IR") and (key==51) ) :
             action='vol-'
-        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
         if ( (source=="IR") and (key==57) ) :
             action='arrow-'
@@ -461,12 +487,13 @@ try:
             action='arrow+'
         if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
-        if (( (source=="IR") and (key==32)  ) or ( (source=="clavier") and (key==9) )) : 
+        if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
             action='back'
+            #print('back')
  
     if protocole=='nec':
         action=''
-        if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key==6)) ) :
+        if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
         if  ((source=="IR") and (key==516) ):
             action='logout'
@@ -478,7 +505,7 @@ try:
             action='vol+'
         if ( (source=="IR") and (key==517) ) :
             action='vol-'
-        if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key==5)) ) :
+        if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
         if ( (source=="IR") and (key==513) ) :
             action='arrow-'
@@ -486,9 +513,34 @@ try:
             action='arrow+'
         if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
-        if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key==9) )) : 
+        if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
  
+  
+    if protocole=='keyes':
+        action=''
+        if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
+            action='home'
+        if  ((source=="IR") and (key==82) ):
+            action='logout'
+        if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            action='scroll'
+        if ( (source=="IR") and (key==8) ) :
+            action='square'
+        if ( (source=="IR") and (key==70) ) :
+            action='vol+'
+        if ( (source=="IR") and (key==21) ) :
+            action='vol-'
+        if ( ((source=="IR") and (key==28)) or ((source=="clavier") and (key=='5')) ) :
+            action='play'
+        if ( (source=="IR") and (key==67) ) :
+            action='arrow-'
+        if ( (source=="IR") and (key==68) ) :
+            action='arrow+'
+        if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            action='select'
+        if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
+            action='back'
     now=datetime.now()
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
@@ -561,6 +613,7 @@ try:
                 update=True
                 
             if (action=='scroll'):
+                print('scroll')
                 if key>last_rotary_position:
                     ST1_param[3]=ST1_param[3]+1
                 if key<last_rotary_position:
@@ -593,11 +646,11 @@ try:
                 STATE=6         #IP
  
             if (action=='back') : 
-                STATE=0   
-                
+                STATE=0
+                            
             if (action=='home') : 
                 STATE=0   
-                
+                               
             if  (action=='logout' ):
                 save=True
                 STATE=100
@@ -1007,7 +1060,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("bbdradio3.py")
+                    err=load_config("data.ini")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1056,7 +1109,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("data.ini")
+                    err=load_config("bbdradio.py")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1187,7 +1240,8 @@ try:
                 init_menu(ST6_param,ST6_menu)
               except:
                 print('error')
-                STATE=1                   
+                STATE=1   
+                 
             if (action=='back') : 
                 update=True
                 STATE=1 

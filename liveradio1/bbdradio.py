@@ -1,3 +1,4 @@
+
 import vlc
 import time
 import board
@@ -14,10 +15,48 @@ from datetime import datetime
 import os
 import subprocess
 from pathlib import Path
-import re
 import shutil
+import busio
 
-os.system('sh remote.sh')
+#Load URL's from the database
+config = configparser.ConfigParser()
+config.read('data.ini')
+nb=config['STREAMS']['nb']
+liste_url=[]
+liste_lbl=[]
+for i in range(1,int(nb)+1):
+  liste_url.append(config['STREAMS']['url'+str(i)])
+  liste_lbl.append(config['STREAMS']['lbl'+str(i)])
+volume=int(config['RADIO SETTINGS']['volume'])
+channel_ini=int(config['RADIO SETTINGS']['index'])
+dtPin=int(config['RADIO SETTINGS']['pin_dt'])
+clkPin=int(config['RADIO SETTINGS']['pin_clk'])
+swPin=int(config['RADIO SETTINGS']['pin_sw'])
+row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
+
+col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
+
+ssid=config['WIFI']['ssid']
+passwd=config['WIFI']['passwd']
+alarm_set=int(config['ALARM']['set'])
+alarm_clck_hour=int(config['ALARM']['hour'])
+alarm_clck_min=int(config['ALARM']['min'])
+alarm_source=config['ALARM']['source']
+url=liste_url[channel_ini]
+protocole='rc-5'
+protocole=config['REMOTE']['prtcl']
+
+def get_ir_device():
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    for device in devices:
+        if (device.name == "gpio_ir_recv"):           
+            return device          
+dev = get_ir_device()
+
+if (protocole=='nec') or (protocole=='keyes'):
+    os.system('sh remote_nec.sh')
+if protocole=='rc-5':
+    os.system('sh remote_rc5.sh')
  
 now=datetime.now()
 lastnow=datetime.now()
@@ -37,8 +76,7 @@ passwd=""
 
 usb_path = "/dev/sda1"
 mount_path = "/home/pierre/usb_disk_mount"
-mp3_files=[]
-                
+mp3_files=[]             
                 
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
@@ -72,70 +110,54 @@ def connect_to_saved(ssid: str):
     subprocess.call(['nmcli', 'c', 'up', ssid])
     return is_connected_to(ssid)
    
-def get_ir_device():
-    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-    for device in devices:
-        if (device.name == "gpio_ir_recv"):           
-            return device          
-dev = get_ir_device()
-
-def trig_ir(arg):
+def trig_ir():
+    global last_call
     event = dev.read_one()
     result=None
     if (event) :
         a = event.value
-        if not(a==0):
-            result= a
-            arg[3]=0
-        else:
-            if arg[3]==1:
-                result=a
-                arg[3]=0
-            else:
-                result=None
-                arg[3]=1
-    else:
-        arg[3]=0
-    if not(result==None):
-        last_result=result
-        arg[2] = time.perf_counter()
-        if not(last_result==arg[0]) or (arg[2]-arg[1])>1:
-            arg[1] = time.perf_counter()
-            arg[0]=last_result
-            return result
+        if not(event.code==0):
+           t=time.perf_counter()
+           if t-last_call>1:
+            last_call=t
+            return a
 
-#Keypad Parameters
+# define PINs according to cabling
+# following array matches 1,2,3,4 PINs from 4x4 Keypad Matrix
 #boutons 30,31,32
-row_list=[23,24,25]
+# following array matches 5,6,7,8 PINs from 4x4 Keypad Matrix
 #boutons 33,34,35
-col_list=[4,5,6]
+
+
+# set row pins to output, all to high
 GPIO.setmode(GPIO.BCM)
 for pin in row_list:
   GPIO.setup(pin,GPIO.OUT)
   GPIO.output(pin, GPIO.HIGH)
+
+#set columns pins to input. We'll read user input here
 for pin in col_list:
   GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-key_map=[["9","8","7"],
-        ["6","5","4"],
+
+key_map=[["9","8","7"],\
+        ["6","5","4"],\
         ["3","2","1"]]
-last_key=-100
-        
-#Define Matrix Keypad read function
+
+# define Matrix Keypad read function
 def Keypad4x4Read(cols,rows):
-  global last_key
   for r in rows:
     GPIO.output(r, GPIO.LOW)
     result=[GPIO.input(cols[0]),GPIO.input(cols[1]),GPIO.input(cols[2])]
     if min(result)==0:
       key=key_map[int(rows.index(r))][int(result.index(0))]
       GPIO.output(r, GPIO.HIGH) # manages key keept pressed
-      if not(key==last_key):
-       last_key=key
-       return key
+      sleep(0.3)
+      return(key)
     GPIO.output(r, GPIO.HIGH)
-    
+
 time_var=["",""]
-date_var=["",""]    
+date_var=["",""] 
+   
 def set_time(arg):
     now = datetime.now()
     global time_var
@@ -144,23 +166,19 @@ def set_time(arg):
     date_var[arg] = now.strftime("%d/%m/%Y")      
                   
 #Rotary encounter parameters
-clkPin = 12    # CLK Pin
-dtPin = 9    # DT Pin
-swPin = 7    # Button Pin
-#rotary encounter GPIO        
+#borne 37
+# CLK Pin
+#borne 38
+# DT Pin
+#borne 36
+# Button Pin
+#Rotary encounter GPIO        
 GPIO.setup(clkPin, GPIO.IN)    # input mode
 GPIO.setup(dtPin, GPIO.IN)
 GPIO.setup(swPin, GPIO.IN)
 
 def rotaryDeal(arg):
    arg[1] = GPIO.input(dtPin)
-   det=GPIO.input(swPin)
-   if (det==0):
-        global globalCounter      
-        arg[3] = 0
-        arg[4]=0
-   else:
-        arg[4]=-1
    while(not GPIO.input(clkPin)):
     arg[2] = GPIO.input(dtPin)
     arg[0] = 1
@@ -172,58 +190,6 @@ def rotaryDeal(arg):
          arg[3] = arg[3] - 1
       arg[3]=max(min(arg[3],100),-100)   
       
-#Load URL's from the database
-config = configparser.ConfigParser()
-config.read('data.ini')
-nb=config['STREAMS']['NB']
-liste_url=[]
-liste_lbl=[]
-for i in range(1,int(nb)+1):
-  liste_url.append(config['STREAMS']['URL'+str(i)])
-  liste_lbl.append(config['STREAMS']['LBL'+str(i)])
-volume=int(config['RADIO SETTINGS']['volume'])
-channel_ini=int(config['RADIO SETTINGS']['index'])
-ssid=config['WIFI']['SSID']
-passwd=config['WIFI']['PASSWD']
-alarm_set=int(config['ALARM']['SET'])
-alarm_clck_hour=int(config['ALARM']['HOUR'])
-alarm_clck_min=int(config['ALARM']['MIN'])
-alarm_source=config['ALARM']['SOURCE']
-url=liste_url[channel_ini]
-
-oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
-oled.fill(0) #clear the OLED Display 
-oled.show()  
-font=ImageFont.load_default()  
-width = 128
-height = 64
-image_blanche = Image.new('1',(128,64))
- 
-image2=Image.open("bbd-liveradio2.jpg")
-image2 = image2.resize((width,height), Image.LANCZOS)
-image2 = image2.convert("1")
-
-image = Image.open("logo.jpg")
-image_r = image.resize((width,height), Image.LANCZOS)
-image_bw = image_r.convert("1")
-oled.image(image_bw)
-draw=ImageDraw.Draw(image_blanche)
-
-player = vlc.MediaPlayer()
-player.set_mrl(url)
-#player.play()
-
-font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
-font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
-font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
-font4 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 10)
-font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
-font200 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 7)
-       
-IR_param=[-100,time.perf_counter(),0,0]
-ROTARY_param=[0,0,0,0,-1]
-time_date=[0,0]
-
 def init_menu(arg,items):
     global update
     global image_blanche
@@ -345,14 +311,14 @@ def save_params():
     global alarm_source
     sind=str(volume)
     schannel=str(channel_ini)
-    config.set('RADIO SETTINGS', 'INDEX', schannel)
-    config.set('RADIO SETTINGS', 'VOLUME',sind )
-    config.set('ALARM', 'SET',str(alarm_set) )
-    config.set('ALARM', 'HOUR',str(alarm_clck_hour) )
-    config.set('ALARM', 'MIN',str(alarm_clck_min) )
-    config.set('ALARM', 'SOURCE',alarm_source )
-    config.set('WIFI', 'SSID',ssid )
-    config.set('WIFI', 'PASSWD',passwd )
+    config.set('RADIO SETTINGS', 'index', schannel)
+    config.set('RADIO SETTINGS', 'volume',sind )
+    config.set('ALARM', 'set',str(alarm_set) )
+    config.set('ALARM', 'hour',str(alarm_clck_hour) )
+    config.set('ALARM', 'min',str(alarm_clck_min) )
+    config.set('ALARM', 'source',alarm_source )
+    config.set('WIFI', 'ssid',ssid )
+    config.set('WIFI', 'passwd',passwd )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
         
@@ -391,7 +357,40 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])
+   
+# SCL=3
+# SDA=2
+# i2c = busio.I2C(SCL, SDA)
+# oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
+oled.fill(0) #clear the OLED Display 
+oled.show()  
+font=ImageFont.load_default()  
+width = 128
+height = 64
+image_blanche = Image.new('1',(128,64))
 
+image = Image.open("logo.jpg")
+image_r = image.resize((width,height), Image.LANCZOS)
+image_bw = image_r.convert("1")
+oled.image(image_bw)
+draw=ImageDraw.Draw(image_blanche)
+
+player = vlc.MediaPlayer()
+player.set_mrl(url)
+#player.play()
+
+font1 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
+font2 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14) 
+font3 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 12)
+font4 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 10)
+font100 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 9)
+font200 = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 7)
+       
+IR_param=[-100,time.perf_counter(),0,0]
+ROTARY_param=[0,0,0,0,-1]
+time_date=[0,0]
+   
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
 ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
 ST2_param=[4,0,0,channel_ini]
@@ -412,36 +411,124 @@ ST6_menu=[]
 STATE=0
 digit_sel=0
 last_rotary_position=ROTARY_param[3]
+last_call=0
+action=''
 
 try:
  while True:
             
-    key=trig_ir(IR_param)
+    key=trig_ir()
     source="IR"
     if key==None: 
-     key=Keypad4x4Read(col_list, row_list)
-     source="clavier"
+        key=Keypad4x4Read(col_list, row_list)
+        source="clavier"
+
+    det=GPIO.input(swPin)
+    if (det==0):
+         globalCounter=0      
+         source="rotary"
+         key=0
+         ROTARY_param[4]=0
+         sleep(0.3)
+
     if (key==None):       
         counter=ROTARY_param[3]
         rotaryDeal(ROTARY_param)
         if not(counter==ROTARY_param[3]):
          source="rotary"
          key=ROTARY_param[3]
+         ROTARY_param[4]=-1
         else:
          source=""
          
 
     if not(key==None):
-         print(source)
-         print(key)   
+        print(source)
+        print(key)   
     
+    if protocole=='rc-5':
+        action=''
+        if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6')) ) :
+            action='home'
+        if  ((source=="IR") and (key==0) ):
+            action='logout'
+        if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            action='scroll'
+        if ( (source=="IR") and (key==40) ) :
+            action='square'
+        if ( (source=="IR") and (key==43) ) :
+            action='vol+'
+        if ( (source=="IR") and (key==51) ) :
+            action='vol-'
+        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
+            action='play'
+        if ( (source=="IR") and (key==57) ) :
+            action='arrow-'
+        if ( (source=="IR") and (key==41) ) :
+            action='arrow+'
+        if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            action='select'
+        if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
+            action='back'
+            #print('back')
+ 
+    if protocole=='nec':
+        action=''
+        if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
+            action='home'
+        if  ((source=="IR") and (key==516) ):
+            action='logout'
+        if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            action='scroll'
+        if ( (source=="IR") and (key==40) ) :
+            action='square'
+        if ( (source=="IR") and (key==518) ) :
+            action='vol+'
+        if ( (source=="IR") and (key==517) ) :
+            action='vol-'
+        if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key=='5')) ) :
+            action='play'
+        if ( (source=="IR") and (key==513) ) :
+            action='arrow-'
+        if ( (source=="IR") and (key==514) ) :
+            action='arrow+'
+        if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            action='select'
+        if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
+            action='back'
+ 
+  
+    if protocole=='keyes':
+        action=''
+        if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
+            action='home'
+        if  ((source=="IR") and (key==82) ):
+            action='logout'
+        if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            action='scroll'
+        if ( (source=="IR") and (key==8) ) :
+            action='square'
+        if ( (source=="IR") and (key==70) ) :
+            action='vol+'
+        if ( (source=="IR") and (key==21) ) :
+            action='vol-'
+        if ( ((source=="IR") and (key==28)) or ((source=="clavier") and (key=='5')) ) :
+            action='play'
+        if ( (source=="IR") and (key==67) ) :
+            action='arrow-'
+        if ( (source=="IR") and (key==68) ) :
+            action='arrow+'
+        if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            action='select'
+        if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
+            action='back'
     now=datetime.now()
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
             player.play()
             STATE=0
-    
+
     match STATE:
      case 0:#ecran d'accueil
             now=datetime.now()
@@ -457,15 +544,15 @@ try:
                 oled.show()
                 lastnow=now            
             
-            if  ((source=="IR") and ((key==3) or (key==49)) or ( (source=="clavier") and (key==5) ))  :
+            if  (action=='select')  :
                 update=True                
                 STATE=1
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout' ):
                 save=True
                 STATE=100
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     volume=min(volume+1,200)
                 if key<last_rotary_position:
@@ -474,17 +561,17 @@ try:
                 player.audio_set_volume(volume)
                 last_rotary_position=ROTARY_param[3]
                 
-            if ( (source=="IR") and (key==43) ) :
+            if ( action=='vol+' ) :
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
                 
-            if ( (source=="IR") and (key==51) ) :
+            if ( action=='vol-' ) :
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
  
-            if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+            if (action=='play') :
                 if not(player.is_playing()):
                     player.play()
                 else:
@@ -494,19 +581,20 @@ try:
             if update==True:
                init_menu(ST1_param,ST1_menu)           
    
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST1_param[3]=ST1_param[3]+1
                 if ST1_param[3]>len(ST1_menu)-1:
                     ST1_param[3]=0
                 update=True
                 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST1_param[3]=ST1_param[3]-1
                 if ST1_param[3]<0:
                     ST1_param[3]=len(ST1_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
+                print('scroll')
                 if key>last_rotary_position:
                     ST1_param[3]=ST1_param[3]+1
                 if key<last_rotary_position:
@@ -518,30 +606,33 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
                     
-            if (ST1_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST1_param[3]==0 and (action=='select')) :
                 update=True
                 STATE=2         #web radio
                 
-            if (ST1_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST1_param[3]==1 and (action=='select')) :
                 update=True
                 STATE=3         #alarm
                 
-            if (ST1_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST1_param[3]==2 and (action=='select')) :
                 update=True
                 STATE=5         #wifi                              
                 
-            if (ST1_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST1_param[3]==3 and (action=='select')) :
                 update=True
                 STATE=4         #USB
                 
-            if (ST1_param[3]==4 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST1_param[3]==4 and (action=='select')) :
                 update=True
                 STATE=6         #IP
  
-            if (( (source=="IR") and ((key==32) or (key==3)) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
+                STATE=0
+                            
+            if (action=='home') : 
                 STATE=0   
-                
-            if  ((source=="IR") and (key==0) ):
+                               
+            if  (action=='logout' ):
                 save=True
                 STATE=100
   
@@ -549,19 +640,19 @@ try:
             if update:
                 init_menu(ST2_param,ST2_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
                 update=True
                 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -573,32 +664,32 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if (action=='select' ) :
                 url=liste_url[ST2_param[3]]
                 player.set_mrl(url)
                 channel_ini=ST2_param[3]
                 player.play()
                 
-            if ( (source=="IR") and (key==43) ) :
+            if ( action=='vol+') :
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
                 update=True
                 
-            if ( (source=="IR") and (key==51) ) :
+            if ( action=='vol-') :
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
                 update=True
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 STATE=1            
                 update=True
                 
-            if ( (source=="IR") and (key==3) )  : 
+            if (action=='home')  : 
                 STATE=0   
 
-            if ((source=="IR") and (key==0)):
+            if (action=='logout'):
                 save=True
                 STATE=100
   
@@ -606,18 +697,18 @@ try:
             if update:
                 init_menu(ST3_param,ST3_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST3_param[3]=ST3_param[3]+1
                 if ST3_param[3]>len(ST3_menu)-1:
                     ST3_param[3]=0
                 update=True
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+') :
                 ST3_param[3]=ST3_param[3]-1
                 if ST3_param[3]<0:
                     ST3_param[3]=len(ST3_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST3_param[3]=ST3_param[3]+1
                 if key<last_rotary_position:
@@ -629,32 +720,32 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if (ST3_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST3_param[3]==0 and (action=='select') ) :
                 update=True
                 STATE=30
                 
-            if (ST3_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST3_param[3]==1 and (action=='select') ) :
                 update=True
                 digit_sel=0
                 STATE=31     
                 
-            if (ST3_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST3_param[3]==2 and (action=='select' )) :
                update=True
                STATE=32
                 
-            if (ST3_param[3]==3 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST3_param[3]==3 and (action=='select')) :
                 update=True
                 STATE=33
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back' ) : 
                 update=True
                 STATE=1 
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout') :
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home')  : 
                 STATE=0   
 
      case 30:#menus activation alarme
@@ -669,23 +760,23 @@ try:
             oled.show()
             update=False  
             
-        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+        if (action=='back' ) :            
             update=True
             last_rotary_position=ROTARY_param[3]
             STATE=3               
             
-        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+        if (action=='select') :
             if alarm_set==1:
                 alarm_set=0 
             else:
                 alarm_set=1
             update=True
             
-        if  ((source=="IR") and (key==0) ):
+        if  (action=='logout'):
                 save=True
                 STATE=100
 
-        if ( (source=="IR") and (key==3) )  : 
+        if (action=='home')  : 
             STATE=0   
             
      case 31:#menus reglage alarme
@@ -693,16 +784,16 @@ try:
             h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
             set_hour(h)
             
-        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+        if (action=='back') :            
             update=True
             last_rotary_position=ROTARY_param[3]
             STATE=3       
             
-        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+        if (action=='select' ) :
             digit_sel=(digit_sel+1)%4
             update=True
             
-        if ( (source=="IR") and (key==41) ) :
+        if ( action=='arrow+' ) :
             match digit_sel:
              case 0:
                 alarm_clck_hour=min(alarm_clck_hour+10,23)
@@ -714,7 +805,7 @@ try:
                 alarm_clck_min=min(alarm_clck_min+1,59)
             update=True
             
-        if ( (source=="IR") and (key==57) ) :
+        if ( action=='arrow-' ) :
             match digit_sel:
              case 0:
                 alarm_clck_hour=max(alarm_clck_hour-10,0)
@@ -726,30 +817,30 @@ try:
                 alarm_clck_min=max(alarm_clck_min-1,0)                
             update=True      
                         
-        if  ((source=="IR") and (key==0) ):
+        if  (action=='logout' ):
                 save=True
                 STATE=100
  
-        if ( (source=="IR") and (key==3) )  : 
+        if ( action=='home' )  : 
             STATE=0   
  
      case 32:#menus selection source alarme
             if update:
                 init_menu(ST2_param,ST2_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST2_param[3]=ST2_param[3]+1
                 if ST2_param[3]>len(ST2_menu)-1:
                     ST2_param[3]=0
                 update=True
                 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST2_param[3]=ST2_param[3]-1
                 if ST2_param[3]<0:
                     ST2_param[3]=len(ST2_menu)-1
                 update=True                
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST2_param[3]=ST2_param[3]+1
                 if key<last_rotary_position:
@@ -761,37 +852,37 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if ( action=='select' ) :
                 alarm_source=liste_url[ST2_param[3]]
 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update=True
                 STATE=3            
 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
                 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 33:#menus selection melodie
             if update:
                 init_menu(ST_melodies,liste_melodies)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST_melodies[3]=ST_melodies[3]+1
                 if ST_melodies[3]>len(liste_melodies)-1:
                     ST_melodies[3]=0
                 update=True
                 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST_melodies[3]=ST_melodies[3]-1
                 if ST_melodies[3]<0:
                     ST_melodies[3]=len(liste_melodies)-1
                 update=True                
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST_melodies[3]=ST_melodies[3]+1
                 if key<last_rotary_position:
@@ -803,36 +894,36 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if ( ((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if ( action=='select' ) :
                 alarm_source=liste_melodies[ST_melodies[3]]
 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update=True
                 STATE=3            
 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
                 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 4:#menu USB
             if update:
                 init_menu(ST4_param,ST4_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST4_param[3]=ST4_param[3]+1
                 if ST4_param[3]>len(ST4_menu)-1:
                     ST4_param[3]=0
                 update=True
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST4_param[3]=ST4_param[3]-1
                 if ST4_param[3]<0:
                     ST4_param[3]=len(ST4_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST4_param[3]=ST4_param[3]+1
                 if key<last_rotary_position:
@@ -844,30 +935,30 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if (ST4_param[3]==0 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST4_param[3]==0 and (action=='select')) :
                 update=True
                 update_usb=True
                 STATE=41
                 
-            if (ST4_param[3]==1 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST4_param[3]==1 and (action=='select')) :
                 update=True
                 rep=[0,0]
                 STATE=42     
 
-            if (ST4_param[3]==2 and (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) )) :
+            if (ST4_param[3]==2 and (action=='select')) :
                 update=True
                 rep=[0,0]
                 STATE=43     
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update=True
                 STATE=1 
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 41:#menu USB Medias
@@ -879,18 +970,18 @@ try:
             if update:
                 init_menu(ST41_param,ST41_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST41_param[3]=ST41_param[3]+1
                 if ST41_param[3]>len(ST41_menu)-1:
                     ST41_param[3]=0
                 update=True
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST41_param[3]=ST41_param[3]-1
                 if ST41_param[3]<0:
                     ST41_param[3]=len(ST41_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST41_param[3]=ST41_param[3]+1
                 if key<last_rotary_position:
@@ -902,24 +993,24 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if  (action=='select') :
                 url=mp3_files[ST41_param[3]]
                 player.set_mrl(url)
                 player.play()
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update_usb=True
                 update=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=1 
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 update_usb=True
                 save=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 update_usb=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=0   
@@ -928,17 +1019,17 @@ try:
             if update:
                 will_you_load(rep)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 update=True
                 rep[0]=(rep[0]+1)%2
                 will_you_load(rep)
 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 update=True
                 rep[0]=(rep[0]-1)%2
                 will_you_load(rep)
                
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     rep[0]=(rep[0]+1)%2
                 if key<last_rotary_position:
@@ -947,7 +1038,7 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 will_you_load(rep)
 
-            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if  (action=='select') :
                 update=True
                 if rep[0]==0:
                     err=load_config("data.ini")
@@ -960,34 +1051,34 @@ try:
                 else:
                     STATE=1
  
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update_usb=True
                 update=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=1 
  
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 43:#menu USB MAJ CONFIG
             if update:
                 will_you_load(rep)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 update=True
                 rep[0]=(rep[0]+1)%2
                 will_you_load(rep)
 
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 update=True
                 rep[0]=(rep[0]-1)%2
                 will_you_load(rep)
                
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     rep[0]=(rep[0]+1)%2
                 if key<last_rotary_position:
@@ -996,7 +1087,7 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 will_you_load(rep)
 
-            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if  (action=='select') :
                 update=True
                 if rep[0]==0:
                     err=load_config("bbdradio.py")
@@ -1009,17 +1100,17 @@ try:
                 else:
                     STATE=1
  
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update_usb=True
                 update=True
                 subprocess.run(["sudo", "umount", mount_path])
                 STATE=1 
  
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 5:#menu wifi
@@ -1031,18 +1122,18 @@ try:
                     ST5_menu.append(w[0])
                 init_menu(ST5_param,ST5_menu)
 
-            if ( (source=="IR") and (key==57) ) :
+            if ( action=='arrow-' ) :
                 ST5_param[3]=ST5_param[3]+1
                 if ST5_param[3]>len(ST5_menu)-1:
                     ST5_param[3]=0
                 update=True
-            if ( (source=="IR") and (key==41) ) :
+            if ( action=='arrow+' ) :
                 ST5_param[3]=ST5_param[3]-1
                 if ST5_param[3]<0:
                     ST5_param[3]=len(ST5_menu)-1
                 update=True
                 
-            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+            if (action=='scroll'):
                 if key>last_rotary_position:
                     ST5_param[3]=ST5_param[3]+1
                 if key<last_rotary_position:
@@ -1054,33 +1145,33 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
 
-            if  (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if  (action=='select') :
                 update=True
                 pwd=passwd
                 ssid=ST5_menu[ST3_param[3]]
                 STATE=50                
                 
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+            if (action=='back') : 
                 update=True
                 STATE=1 
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0   
 
      case 50:#menu wifi passwd
         if update:
            set_passwd(pwd)
             
-        if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) :            
+        if (action=='back') :            
             update=True
             last_rotary_position=ROTARY_param[3]
             STATE=5       
             
-        if (( (source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+        if (action=='select') :
             pwd=pwd+"-"
             update=True
           
@@ -1088,7 +1179,7 @@ try:
             pwd=pwd[:-1]  
             update=True
             
-        if ( (source=="IR") and (key==41) ) : #touche UP
+        if ( action=='arrow+' ) : #touche UP
             r=ord(pwd[len(pwd)-1])+1
             if r>126:
                 r=32
@@ -1098,7 +1189,7 @@ try:
             pwd=pwd[:len(pwd)-1]+chr(r)
             update=True
             
-        if ( (source=="IR") and (key==57) ) : #touche DOWN
+        if ( action=='arrow-' ) : #touche DOWN
             r=ord(pwd[len(pwd)-1])-1
             if r>126:
                 r=32
@@ -1112,35 +1203,35 @@ try:
             passwd=pwd
             connect_to(ssid,passwd)
 
-        if  ((source=="IR") and (key==0) ):
+        if  (action=='logout'):
                 save=True
                 STATE=100
  
-        if ( (source=="IR") and (key==3) )  : 
+        if ( action=='home' )  : 
             STATE=0   
  
      case 6:#menu IP
             if update:
-                cmd = "ifconfig wlan0 | grep 'inet '"
-                ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                output = ps.communicate()[0]
-                output= output.decode("utf-8")
-                output = re.split("inet",output)
-                output=output[1]
-                output = re.split("netmask",output)
+              try:
+                os.system('sh get_ip.sh')
+                f=open("ip.txt")
+                ip=f.readline().strip('\n')
                 ST6_menu=[]
-                ST6_menu.append(output[0])
+                ST6_menu.append(ip)
                 init_menu(ST6_param,ST6_menu)
-                
-            if (( (source=="IR") and (key==32) ) or ( (source=="clavier") and (key==9) )) : 
+              except:
+                print('error')
+                STATE=1   
+                 
+            if (action=='back') : 
                 update=True
                 STATE=1 
                 
-            if  ((source=="IR") and (key==0) ):
+            if  (action=='logout'):
                 save=True
                 STATE=100
 
-            if ( (source=="IR") and (key==3) )  : 
+            if ( action=='home' )  : 
                 STATE=0 
                 
      case 100:#écran de veille
@@ -1162,7 +1253,7 @@ try:
                 oled.image(image_blanche)               
                 oled.show()
                 lastnow=now
-            if ((source=="IR") and (key==0) ):
+            if (action=='logout' ):
                 STATE=0
  
 except KeyboardInterrupt:

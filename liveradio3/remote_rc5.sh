@@ -1,1 +1,0 @@
-sudo /usr/bin/ir-keytable -p rc-5 -s rc1

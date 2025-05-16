@@ -357,11 +357,16 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])
-   
+  
+#------------------------- protocole I2C-------------------------------------------------------------------  
 SCL=3
 SDA=2
 i2c = busio.I2C(SCL, SDA)
 oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+#------------------------- protocole SPI-------------------------------------------------------------------  
+#oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
+#----------------------------------------------------------------------------------------------------------  
+
 oled.fill(0) #clear the OLED Display 
 oled.show()  
 font=ImageFont.load_default()  
@@ -436,6 +441,7 @@ try:
         if not(counter==ROTARY_param[3]):
          source="rotary"
          key=ROTARY_param[3]
+         ROTARY_param[4]=-1
         else:
          source=""
          
@@ -468,7 +474,7 @@ try:
             action='select'
         if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
             action='back'
-            print('back')
+            #print('back')
  
     if protocole=='nec':
         action=''
@@ -490,7 +496,7 @@ try:
             action='arrow-'
         if ( (source=="IR") and (key==514) ) :
             action='arrow+'
-        if (((source=="IR") and (key==536)) or ((source=="rotary") and (key=='0') and (ROTARY_param[4]==0)) ) :
+        if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
         if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
@@ -516,7 +522,7 @@ try:
             action='arrow-'
         if ( (source=="IR") and (key==68) ) :
             action='arrow+'
-        if (((source=="IR") and (key==64)) or ((source=="rotary") and (key=='0') and (ROTARY_param[4]==0)) ) :
+        if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
         if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
@@ -592,6 +598,7 @@ try:
                 update=True
                 
             if (action=='scroll'):
+                print('scroll')
                 if key>last_rotary_position:
                     ST1_param[3]=ST1_param[3]+1
                 if key<last_rotary_position:
