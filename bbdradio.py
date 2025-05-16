@@ -452,9 +452,9 @@ try:
     
     if protocole=='rc-5':
         action=''
-        if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6')) ) :
+        if (((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6'))) :
             action='home'
-        if  ((source=="IR") and (key==0) ):
+        if  (((source=="IR") and (key==0) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
@@ -480,7 +480,7 @@ try:
         action=''
         if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
-        if  ((source=="IR") and (key==516) ):
+        if  (((source=="IR") and (key==516) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
@@ -506,7 +506,7 @@ try:
         action=''
         if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
-        if  ((source=="IR") and (key==82) ):
+        if  (((source=="IR") and (key==82) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
