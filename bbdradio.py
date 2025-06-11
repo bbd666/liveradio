@@ -1045,7 +1045,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("data.ini")
+                    err=load_config("bbdradio.py")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1094,7 +1094,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("bbdradio.py")
+                    err=load_config("data.ini")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
