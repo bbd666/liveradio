@@ -290,10 +290,10 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s="btn SCROLL: modif, >>: ajout"
+    s="btn SCROLL: modif, >>| : ajout"
     #s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
     draw.text((5,5),s,font=font100,size=1,fill=1)  
-    s="<<: suppr, >||: valid"
+    s="|<< : suppr, >|| : valid"
     #s=chr(1)+": suppr, "+">||: valid"
     draw.text((5,15),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
