@@ -99,7 +99,14 @@ def is_wifi_available(ssid: str):
 def connect_to(ssid: str, password: str):
     if not is_wifi_available(ssid):
         return False
-    subprocess.call(['nmcli', 'd', 'wifi', 'connect', ssid, 'password', password])
+    ch = "sudo nmcli device wifi connect "+ssid+" password "+password
+    ch_mod=ch.split()
+    proc = subprocess.run(
+    ch_mod,
+    stdout=subprocess.PIPE,
+    input="topgun12",
+    encoding="utf8",
+)
     return is_connected_to(ssid)
 
 def connect_to_saved(ssid: str):
@@ -1252,7 +1259,8 @@ try:
                 STATE=0
  
 except KeyboardInterrupt:
-    save_params()
+    print("fin")
+    #save_params()
          
         
     
