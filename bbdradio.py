@@ -290,10 +290,10 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s="PREV,NEXT": modif, 'OK:' ajout"
+    s="btn SCROLL: modif, >>: ajout"
     #s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
     draw.text((5,5),s,font=font100,size=1,fill=1)  
-    s="CARRE/btn3": suppr, "+">||: valid"
+    s="<<: suppr, >||: valid"
     #s=chr(1)+": suppr, "+">||: valid"
     draw.text((5,15),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
@@ -1178,33 +1178,13 @@ try:
             update=True
             last_rotary_position=ROTARY_param[3]
             STATE=5       
-            
-        if (action=='select') :
-            pwd=pwd+"-"
-            update=True
-          
-        if ( action=='square' ) : #touche square
-            pwd=pwd[:-1]  
-            update=True
-            
+                                 
         if ( action=='arrow+' ) : #touche UP
-            r=ord(pwd[len(pwd)-1])+1
-            if r>126:
-                r=32
-            else:
-                if r<32:
-                    r=126
-            pwd=pwd[:len(pwd)-1]+chr(r)
+            pwd=pwd+"-"
             update=True
             
         if ( action=='arrow-' ) : #touche DOWN
-            r=ord(pwd[len(pwd)-1])-1
-            if r>126:
-                r=32
-            else:
-                if r<32:
-                    r=126
-            pwd=pwd[:len(pwd)-1]+chr(r)
+            pwd=pwd[:-1]  
             update=True
                         
         if (action=='scroll'):
