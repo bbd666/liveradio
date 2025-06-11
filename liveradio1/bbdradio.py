@@ -36,8 +36,8 @@ row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['
 
 col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
 
-ssid=config['WIFI']['ssid']
-passwd=config['WIFI']['passwd']
+ssid=config['WIFI']['SSID']
+passwd=config['WIFI']['PASSWD']
 alarm_set=int(config['ALARM']['set'])
 alarm_clck_hour=int(config['ALARM']['hour'])
 alarm_clck_min=int(config['ALARM']['min'])
@@ -71,8 +71,6 @@ for f in liste:
         liste_melodies.append(f)
 ST_melodies=[4,0,0,0]
 
-ssid=""
-passwd=""
 
 usb_path = "/dev/sda1"
 mount_path = "/home/pierre/usb_disk_mount"
@@ -292,9 +290,9 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
+    s="btn SCROLL: modif, >>| : ajout"
     draw.text((5,5),s,font=font100,size=1,fill=1)  
-    s=chr(1)+": suppr, "+">||: valid"
+    s="|<< : suppr, >|| : valid"
     draw.text((5,15),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
         draw.text(((5+10*i)%(width-10),30+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
@@ -317,8 +315,8 @@ def save_params():
     config.set('ALARM', 'hour',str(alarm_clck_hour) )
     config.set('ALARM', 'min',str(alarm_clck_min) )
     config.set('ALARM', 'source',alarm_source )
-    config.set('WIFI', 'ssid',ssid )
-    config.set('WIFI', 'passwd',passwd )
+    config.set('WIFI', 'SSID',ssid )
+    config.set('WIFI', 'PASSWD',passwd )
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
         
@@ -414,6 +412,9 @@ last_rotary_position=ROTARY_param[3]
 last_call=0
 action=''
 
+if (not(passwd=="") and (not(ssid==""))):
+  connect_to(ssid,passwd)
+
 try:
  while True:
             
@@ -448,13 +449,13 @@ try:
     
     if protocole=='rc-5':
         action=''
-        if ( ((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6')) ) :
+        if (((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6'))) :
             action='home'
-        if  ((source=="IR") and (key==0) ):
+        if  (((source=="IR") and (key==0) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( (source=="IR") and (key==40) ) :
+        if ( ((source=="IR") and (key==40)) or ((source=="clavier") and (key=='7'))) :
             action='square'
         if ( (source=="IR") and (key==43) ) :
             action='vol+'
@@ -462,9 +463,9 @@ try:
             action='vol-'
         if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
-        if ( (source=="IR") and (key==57) ) :
+        if ( ((source=="IR") and (key==57))or ((source=="clavier") and (key=='2')) ):
             action='arrow-'
-        if ( (source=="IR") and (key==41) ) :
+        if ( ((source=="IR") and (key==41))or ((source=="clavier") and (key=='8')) ):
             action='arrow+'
         if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
@@ -476,11 +477,11 @@ try:
         action=''
         if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
-        if  ((source=="IR") and (key==516) ):
+        if  (((source=="IR") and (key==516) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( (source=="IR") and (key==40) ) :
+        if ( ((source=="IR") and (key==520)) or ((source=="clavier") and (key=='7'))) :
             action='square'
         if ( (source=="IR") and (key==518) ) :
             action='vol+'
@@ -488,25 +489,24 @@ try:
             action='vol-'
         if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
-        if ( (source=="IR") and (key==513) ) :
+        if ( ((source=="IR") and (key==513))or ((source=="clavier") and (key=='2')) ):
             action='arrow-'
-        if ( (source=="IR") and (key==514) ) :
+        if ( ((source=="IR") and (key==514))or ((source=="clavier") and (key=='8')) ):
             action='arrow+'
         if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
         if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
  
-  
     if protocole=='keyes':
         action=''
         if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
             action='home'
-        if  ((source=="IR") and (key==82) ):
+        if  (((source=="IR") and (key==82) ) or ((source=="clavier") and (key=='3'))):
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( (source=="IR") and (key==8) ) :
+        if ( ((source=="IR") and (key==8)) or ((source=="clavier") and (key=='7'))) :
             action='square'
         if ( (source=="IR") and (key==70) ) :
             action='vol+'
@@ -514,14 +514,15 @@ try:
             action='vol-'
         if ( ((source=="IR") and (key==28)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
-        if ( (source=="IR") and (key==67) ) :
+        if ( ((source=="IR") and (key==67))or ((source=="clavier") and (key=='2')) ):
             action='arrow-'
-        if ( (source=="IR") and (key==68) ) :
+        if ( ((source=="IR") and (key==68))or ((source=="clavier") and (key=='8')) ):
             action='arrow+'
         if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
         if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
+            
     now=datetime.now()
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
@@ -1041,7 +1042,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("data.ini")
+                    err=load_config("bbdradio.py")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1090,7 +1091,7 @@ try:
             if  (action=='select') :
                 update=True
                 if rep[0]==0:
-                    err=load_config("bbdradio.py")
+                    err=load_config("data.ini")
                     if (err==1):
                         rep[1]=1
                         will_you_load(rep)
@@ -1170,36 +1171,30 @@ try:
             update=True
             last_rotary_position=ROTARY_param[3]
             STATE=5       
-            
-        if (action=='select') :
-            pwd=pwd+"-"
-            update=True
-          
-        if ( (source=="IR") and (key==40) ) : #touche square
-            pwd=pwd[:-1]  
-            update=True
-            
+                                 
         if ( action=='arrow+' ) : #touche UP
-            r=ord(pwd[len(pwd)-1])+1
-            if r>126:
-                r=32
-            else:
-                if r<32:
-                    r=126
-            pwd=pwd[:len(pwd)-1]+chr(r)
+            pwd=pwd+"-"
             update=True
             
         if ( action=='arrow-' ) : #touche DOWN
-            r=ord(pwd[len(pwd)-1])-1
-            if r>126:
-                r=32
-            else:
-                if r<32:
-                    r=126
-            pwd=pwd[:len(pwd)-1]+chr(r)
+            pwd=pwd[:-1]  
             update=True
                         
-        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key==5)) ) :
+        if (action=='scroll'):
+                if key>last_rotary_position:
+                    r=ord(pwd[len(pwd)-1])+1
+                if key<last_rotary_position:
+                    r=ord(pwd[len(pwd)-1])-1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                pwd=pwd[:len(pwd)-1]+chr(r)
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+        if ( action=='play' ) :
             passwd=pwd
             connect_to(ssid,passwd)
 
@@ -1209,7 +1204,7 @@ try:
  
         if ( action=='home' )  : 
             STATE=0   
- 
+            
      case 6:#menu IP
             if update:
               try:
