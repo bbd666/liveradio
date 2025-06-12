@@ -18,6 +18,8 @@ from pathlib import Path
 import shutil
 import busio
 
+ssid=""
+passwd=""
 #Load URL's from the database
 config = configparser.ConfigParser()
 config.read('data.ini')
