@@ -262,7 +262,19 @@ def will_you_load(arg):
     oled.image(image_blanche)
     oled.show()
     update=False
-
+    
+def draw_msg(arg):
+    global update
+    global image_blanche
+    global oled
+    global draw
+    image_blanche = Image.new('1',(128,64))
+    draw=ImageDraw.Draw(image_blanche)
+    draw.text((30,35),arg,font=font3,size=1,fill=1)
+    oled.image(image_blanche)
+    oled.show()
+    update=False
+    
 def set_hour(arg):
     global update
     global image_blanche
@@ -1210,8 +1222,18 @@ try:
 
         if ( action=='play' ) :
             passwd=pwd
-            connect_to(ssid,passwd)
-
+            res=""
+            try:
+                res=connect_to(ssid,passwd)
+            except:
+                res=""
+            if not(res==""):
+                s="connecté à : "+res
+                draw_msg(s)
+            else:
+                s="echec connection"
+                draw_msg(s)
+                
         if  (action=='logout'):
                 save=True
                 STATE=100

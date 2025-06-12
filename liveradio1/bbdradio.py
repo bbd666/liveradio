@@ -105,7 +105,8 @@ def connect_to(ssid: str, password: str):
     ch_mod,
     stdout=subprocess.PIPE,
     input="topgun12",
-    encoding="utf8",)
+    encoding="utf8",
+)
     return is_connected_to(ssid)
 
 def connect_to_saved(ssid: str):
@@ -273,7 +274,7 @@ def draw_msg(arg):
     oled.image(image_blanche)
     oled.show()
     update=False
-
+    
 def set_hour(arg):
     global update
     global image_blanche
@@ -309,8 +310,10 @@ def set_passwd(arg):
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
     s="btn SCROLL: modif, >>| : ajout"
+    #s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
     draw.text((5,5),s,font=font100,size=1,fill=1)  
     s="|<< : suppr, >|| : valid"
+    #s=chr(1)+": suppr, "+">||: valid"
     draw.text((5,15),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
         draw.text(((5+10*i)%(width-10),30+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
@@ -334,7 +337,7 @@ def save_params():
     config.set('ALARM', 'min',str(alarm_clck_min) )
     config.set('ALARM', 'source',alarm_source )
     config.set('WIFI', 'SSID',ssid )
-    config.set('WIFI', 'PASSWD',passwd )
+    config.set('WIFI', 'PASSWD', passwd)
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
         
@@ -373,12 +376,16 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])
-   
-# SCL=3
-# SDA=2
-# i2c = busio.I2C(SCL, SDA)
-# oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+  
+#------------------------- protocole I2C-------------------------------------------------------------------  
+#SCL=3
+#SDA=2
+#i2c = busio.I2C(SCL, SDA)
+#oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+#------------------------- protocole SPI-------------------------------------------------------------------  
 oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
+#----------------------------------------------------------------------------------------------------------  
+
 oled.fill(0) #clear the OLED Display 
 oled.show()  
 font=ImageFont.load_default()  
@@ -542,6 +549,7 @@ try:
             action='back'
             
     now=datetime.now()
+    
     if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
@@ -1225,15 +1233,14 @@ try:
             else:
                 s="echec connection"
                 draw_msg(s)
-               
-
+                
         if  (action=='logout'):
                 save=True
                 STATE=100
  
         if ( action=='home' )  : 
             STATE=0   
-            
+ 
      case 6:#menu IP
             if update:
               try:
@@ -1282,7 +1289,6 @@ try:
  
 except KeyboardInterrupt:
     print("fin")
-    #save_params()
          
         
     
