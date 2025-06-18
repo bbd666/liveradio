@@ -3,9 +3,9 @@ import RPi.GPIO as GPIO
 import time
 
 #borne 38
-clkPin = 22    # CLK Pin
+clkPin = 15    # CLK Pin
 #borne 37
-dtPin = 5   # DT Pin
+dtPin = 23  # DT Pin
 #borne 36
 swPin = 11    # Button Pin
 
@@ -17,10 +17,9 @@ Current_dt_Status = 0
 
 def setup():
    GPIO.setmode(GPIO.BCM)       # Numbers GPIOs by physical location
-   GPIO.setup(clkPin, GPIO.IN)    # input mode
-   GPIO.setup(dtPin, GPIO.IN)
-   GPIO.setup(swPin, GPIO.IN)
-#   GPIO.setup(swPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+   GPIO.setup(dtPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+   GPIO.setup(clkPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+   GPIO.setup(swPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def rotaryDeal():
    global flag

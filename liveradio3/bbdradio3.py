@@ -101,13 +101,21 @@ def connect_to(ssid: str, password: str):
         return False
     ch = "sudo nmcli device wifi connect "+ssid+" password "+password
     ch_mod=ch.split()
-    proc = subprocess.run(
-    ch_mod,
-    stdout=subprocess.PIPE,
-    input="topgun12",
-    encoding="utf8",
-)
-    return is_connected_to(ssid)
+    try:
+      proc = subprocess.run(
+        ch_mod,
+        stdout=subprocess.PIPE,
+        input="topgun12",
+        encoding="utf8",
+      )
+      print(f"Connecté à {ssid} : {proc.stdout.strip()}")
+      return True
+    except subprocess.CalledProcessError as e:
+      print(f"Erreur nmcli : {e.stderr.strip()}")
+      return False
+    except Exception as e:
+      print(f"Erreur système : {str(e)}")
+      return False
 
 def connect_to_saved(ssid: str):
     if not is_wifi_available(ssid):
@@ -289,7 +297,7 @@ def draw_msg(arg):
     global draw
     image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
-    draw.text((30,35),arg,font=font3,size=1,fill=1)
+    draw.text((10,35),arg,font=font100,size=1,fill=1)
     oled.image(image_blanche)
     oled.show()
     update=False
@@ -1239,13 +1247,9 @@ try:
 
         if ( action=='play' ) :
             passwd=pwd
-            res=""
-            try:
-                res=connect_to(ssid,passwd)
-            except:
-                res=""
-            if not(res==""):
-                s="connecté à : "+res
+            res=connect_to(ssid,passwd)
+            if (res):
+                s="connecté à : "+ssid
                 draw_msg(s)
             else:
                 s="echec connection"
