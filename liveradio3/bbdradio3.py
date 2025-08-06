@@ -604,6 +604,7 @@ try:
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
             player.play()
+            player.audio_set_volume(volume)
             STATE=0
 
     match STATE:

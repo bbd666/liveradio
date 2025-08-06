@@ -1,3 +1,4 @@
+#27/07/2025
 
 import vlc
 import time
@@ -118,6 +119,7 @@ def connect_to(ssid: str, password: str):
     except Exception as e:
       print(f"Erreur système : {str(e)}")
       return False
+
 
 def connect_to_saved(ssid: str):
     if not is_wifi_available(ssid):
@@ -273,6 +275,37 @@ def will_you_load(arg):
     oled.show()
     update=False
     
+def will_you_save(arg):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    global draw
+    largeur=5
+    hauteur=6
+    image_blanche = Image.new('1',(128,64))
+    draw=ImageDraw.Draw(image_blanche)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    if arg[1]==1:
+        draw.text((30,35),"Fichiers copies",font=font3,size=1,fill=1)
+    else:
+        if arg[1]==2:
+            draw.text((30,35),"echec SAUVEGARDE",font=font3,size=1,fill=1)
+        else:
+            draw.text((5,5),"Lancement de la sauvegarde ?",font=font4,size=1,fill=1)
+            if arg[0]==0:
+               draw.rectangle((30-largeur, 40+hauteur, 60+largeur, 30-hauteur), outline=1, fill=1) 
+               draw.text((30,30),"OUI",font=font3,size=1,fill=0)
+               draw.text((80,30),"NON",font=font3,size=1,fill=1)
+            else:
+               draw.rectangle((80-largeur, 40+hauteur, 110+largeur, 30-hauteur), outline=1, fill=1) 
+               draw.text((30,30),"OUI",font=font3,size=1,fill=1)
+               draw.text((80,30),"NON",font=font3,size=1,fill=0)
+    oled.image(image_blanche)
+    oled.show()
+    update=False
+    
 def draw_msg(arg):
     global update
     global image_blanche
@@ -319,14 +352,16 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s="btn SCROLL: modif, >>| : ajout"
-    #s=chr(708)+","+chr(709)+": modif, 'Select:' ajout"
-    draw.text((5,5),s,font=font100,size=1,fill=1)  
-    s="|<< : suppr, >|| : valid"
-    #s=chr(1)+": suppr, "+">||: valid"
-    draw.text((5,15),s,font=font100,size=1,fill=1)  
+    s="SCROLL ou >>,<< : modif"
+    draw.text((5,0),s,font=font100,size=1,fill=1)  
+    s="fleche HAUT ou >>| : ajout"
+    draw.text((5,10),s,font=font100,size=1,fill=1)  
+    s="fleche BAS ou |<< : suppr"
+    draw.text((5,20),s,font=font100,size=1,fill=1)  
+    s=">|| : valid"
+    draw.text((5,30),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
-        draw.text(((5+10*i)%(width-10),30+10*((5+10*i)//(width-10))),str(arg[i]),font=font4,size=1,fill=1)  
+        draw.text(((5+10*i)%(width-10),45+10*((5+10*i)//(width-10))),str(arg[i]),font=font100,size=1,fill=1)  
     oled.image(image_blanche)
     oled.show()
     update=False     
@@ -386,6 +421,24 @@ def load_config(arg):
     else:
         return 0
     subprocess.run(["sudo", "umount", mount_path])
+    
+def save_config(arg):
+    global usb_path
+    global mount_path 
+    os.system('sh get_usb_dev.sh')
+    f=open("dev_usb.txt")
+    usb_path=f.readline().strip('\n')
+    subprocess.run(["sudo", "mount", usb_path, mount_path])
+    p = Path(mount_path)
+    if p.is_mount():
+        my_file_target = p/arg
+        my_file="/home/pierre/"+arg
+        #shutil.copyfile(my_file,my_file_target)
+        os.system('sudo cp ' +str(my_file) +'  '+ str(my_file_target) )       
+        return 1
+    else:
+        return 0
+    subprocess.run(["sudo", "umount", mount_path])
   
 #------------------------- protocole I2C-------------------------------------------------------------------  
 #SCL=3
@@ -435,7 +488,7 @@ ST100_menu=[]
 ST5_param=[4,0,0,0]
 ST5_menu=[]
 ST4_param=[4,0,0,0]
-ST4_menu=["MEDIAS","MAJ SYSTEME","MAJ CONFIG"]
+ST4_menu=["MEDIAS","MAJ SYSTEME","MAJ CONFIG","SAUVEGARDE"]
 ST41_param=[4,0,0,0]
 ST41_menu=[]
 ST6_param=[4,0,0,0]
@@ -477,7 +530,6 @@ try:
         else:
          source=""
          
-
     if not(key==None):
         print(source)
         print(key)   
@@ -490,7 +542,7 @@ try:
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( ((source=="IR") and (key==40)) or ((source=="clavier") and (key=='7'))) :
+        if ( (source=="IR") and (key==40)) :
             action='square'
         if ( (source=="IR") and (key==43) ) :
             action='vol+'
@@ -506,7 +558,11 @@ try:
             action='select'
         if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
             action='back'
-            #print('back')
+        if ( (source=="clavier") and (key=='1') ) :
+            action='prev'
+        if ( (source=="clavier") and (key=='7') ) :
+            action='next'
+        #print('back')
  
     if protocole=='nec':
         action=''
@@ -516,7 +572,7 @@ try:
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( ((source=="IR") and (key==520)) or ((source=="clavier") and (key=='7'))) :
+        if ( (source=="IR") and (key==520)) :
             action='square'
         if ( (source=="IR") and (key==518) ) :
             action='vol+'
@@ -532,7 +588,11 @@ try:
             action='select'
         if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
- 
+        if ( (source=="clavier") and (key=='1') ) :
+            action='prev'
+        if ( (source=="clavier") and (key=='7') ) :
+            action='next'
+            
     if protocole=='keyes':
         action=''
         if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
@@ -541,7 +601,7 @@ try:
             action='logout'
         if ((source=="rotary") and (ROTARY_param[4]==-1)):
             action='scroll'
-        if ( ((source=="IR") and (key==8)) or ((source=="clavier") and (key=='7'))) :
+        if ( (source=="IR") and (key==8)) :
             action='square'
         if ( (source=="IR") and (key==70) ) :
             action='vol+'
@@ -557,6 +617,10 @@ try:
             action='select'
         if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
             action='back'
+        if ( (source=="clavier") and (key=='1') ) :
+            action='prev'
+        if ( (source=="clavier") and (key=='7') ) :
+            action='next'
             
     now=datetime.now()
     
@@ -567,7 +631,7 @@ try:
             STATE=0
 
     match STATE:
-     case 0:#ecran d'accueil
+     case 0:#ecran d'accueil                
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
@@ -581,7 +645,7 @@ try:
                 oled.show()
                 lastnow=now            
             
-            if  (action=='select')  :
+            if  (action=='select'):
                 update=True                
                 STATE=1
                 
@@ -598,19 +662,20 @@ try:
                 player.audio_set_volume(volume)
                 last_rotary_position=ROTARY_param[3]
                 
-            if ( action=='vol+' ) :
+            if ( action=='vol+' ):
                 volume=min(volume+5,200)
                 sound_box(volume)
                 player.audio_set_volume(volume)
                 
-            if ( action=='vol-' ) :
+            if ( action=='vol-' ):
                 volume=max(volume-5,0)
                 sound_box(volume)
                 player.audio_set_volume(volume)
  
-            if (action=='play') :
+            if (action=='play'):
                 if not(player.is_playing()):
                     player.play()
+                    player.audio_set_volume(volume)
                 else:
                     player.pause()                   
                 
@@ -986,6 +1051,11 @@ try:
                 update=True
                 rep=[0,0]
                 STATE=43     
+
+            if (ST4_param[3]==3 and (action=='select')) :
+                update=True
+                rep=[0,0]
+                STATE=44   
                 
             if (action=='back') : 
                 update=True
@@ -1150,6 +1220,56 @@ try:
             if ( action=='home' )  : 
                 STATE=0   
 
+     case 44:#menu USB SAUVEGARDE
+            if update:
+                will_you_save(rep)
+
+            if ( action=='arrow-' ) :
+                update=True
+                rep[0]=(rep[0]+1)%2
+                will_you_save(rep)
+
+            if ( action=='arrow+' ) :
+                update=True
+                rep[0]=(rep[0]-1)%2
+                will_you_save(rep)
+               
+            if (action=='scroll'):
+                if key>last_rotary_position:
+                    rep[0]=(rep[0]+1)%2
+                if key<last_rotary_position:
+                    rep[0]=(rep[0]-1)%2
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                will_you_save(rep)
+
+            if  (action=='select') :
+                update=True
+                if rep[0]==0:
+                    err1=save_config("data.ini")
+                    err2=save_config("bbdradio.py")
+                    if (err1==1) and (err2==1):
+                        rep[1]=1
+                        will_you_save(rep)
+                    else:
+                        rep[1]=2
+                        will_you_save(rep)
+                else:
+                    STATE=1
+ 
+            if (action=='back') : 
+                update_usb=True
+                update=True
+                subprocess.run(["sudo", "umount", mount_path])
+                STATE=1 
+ 
+            if  (action=='logout'):
+                save=True
+                STATE=100
+
+            if ( action=='home' )  : 
+                STATE=0   
+
      case 5:#menu wifi
             if update:
                 s=scan_wifi()
@@ -1217,6 +1337,7 @@ try:
             update=True
                         
         if (action=='scroll'):
+            if len(pwd)>0:
                 if key>last_rotary_position:
                     r=ord(pwd[len(pwd)-1])+1
                 if key<last_rotary_position:
@@ -1229,7 +1350,29 @@ try:
                 pwd=pwd[:len(pwd)-1]+chr(r)
                 last_rotary_position=ROTARY_param[3]
                 update=True
-
+                
+        if (action=='next') : 
+            if len(pwd)>0:
+                r=ord(pwd[len(pwd)-1])+1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                pwd=pwd[:len(pwd)-1]+chr(r)
+                update=True
+            
+        if (action=='prev') : 
+            if len(pwd)>0:
+                r=ord(pwd[len(pwd)-1])-1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                pwd=pwd[:len(pwd)-1]+chr(r)
+                update=True
+            
         if ( action=='play' ) :
             passwd=pwd
             res=connect_to(ssid,passwd)
@@ -1278,6 +1421,7 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
+                player.audio_set_volume(0)            
                 if player.is_playing():
                     player.stop()
                 draw=ImageDraw.Draw(image_blanche)
