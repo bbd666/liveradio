@@ -702,7 +702,6 @@ try:
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
             player.play()
-            player.audio_set_volume(volume)
             STATE=0
 
     match STATE:
@@ -750,7 +749,6 @@ try:
             if (action=='play'):
                 if not(player.is_playing()):
                     player.play()
-                    player.audio_set_volume(volume)
                 else:
                     player.pause()                   
                 
@@ -812,7 +810,19 @@ try:
             if  (action=='logout' ):
                 save=True
                 STATE=100
-  
+                
+            if ( action=='vol+') :
+                volume=min(volume+5,200)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+                update=True
+                
+            if ( action=='vol-') :
+                volume=max(volume-5,0)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+                update=True
+                
      case 2:#menus web radios
             if update:
                 init_menu(ST2_param,ST2_menu)
@@ -1496,7 +1506,6 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
-                player.audio_set_volume(0)            
                 if player.is_playing():
                     player.stop()
                 draw=ImageDraw.Draw(image_blanche)
