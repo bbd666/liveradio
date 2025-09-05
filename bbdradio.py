@@ -1,4 +1,4 @@
-#27/07/2025
+#04/09/2025
 
 import vlc
 import time
@@ -36,8 +36,10 @@ dtPin=int(config['RADIO SETTINGS']['pin_dt'])
 clkPin=int(config['RADIO SETTINGS']['pin_clk'])
 swPin=int(config['RADIO SETTINGS']['pin_sw'])
 row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
-
 col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
+wiring_mode='MODIFIED'
+wiring_mode=config['RADIO SETTINGS']['WIRING']
+#wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
 
 ssid=config['WIFI']['SSID']
 passwd=config['WIFI']['PASSWD']
@@ -48,6 +50,9 @@ alarm_source=config['ALARM']['source']
 url=liste_url[channel_ini]
 protocole='rc-5'
 protocole=config['REMOTE']['prtcl']
+
+lcd_mode='I2C'
+lcd_mode=config['LCD']['DISPLAY']
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -139,22 +144,31 @@ def trig_ir():
             last_call=t
             return a
 
+GPIO.setmode(GPIO.BCM)
+if (wiring_mode=='REWELDED'):
+#poussoirs
+    GPIO.setup(17, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(15, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(23, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(22, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(24, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(8, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(25, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(9, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(5, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+else:
 # define PINs according to cabling
 # following array matches 1,2,3,4 PINs from 4x4 Keypad Matrix
 #boutons 30,31,32
 # following array matches 5,6,7,8 PINs from 4x4 Keypad Matrix
 #boutons 33,34,35
-
-
-# set row pins to output, all to high
-GPIO.setmode(GPIO.BCM)
-for pin in row_list:
-  GPIO.setup(pin,GPIO.OUT)
-  GPIO.output(pin, GPIO.HIGH)
-
-#set columns pins to input. We'll read user input here
-for pin in col_list:
-  GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+############ set row pins to output, all to high
+    for pin in row_list:
+        GPIO.setup(pin,GPIO.OUT)
+        GPIO.output(pin, GPIO.HIGH)
+############ set columns pins to input. We'll read user input here
+    for pin in col_list:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 key_map=[["9","8","7"],\
         ["6","5","4"],\
@@ -172,6 +186,52 @@ def Keypad4x4Read(cols,rows):
       return(key)
     GPIO.output(r, GPIO.HIGH)
 
+def clavier():
+    appui=None
+    etat=GPIO.input(17)
+    if (etat==GPIO.LOW):
+       appui='3'
+    etat=GPIO.input(15)
+    if (etat==GPIO.LOW):
+       appui='6'
+    etat=GPIO.input(23)
+    if (etat==GPIO.LOW):
+       appui='9'
+    etat=GPIO.input(22)
+    if (etat==GPIO.LOW):
+       appui='2'
+    etat=GPIO.input(24)
+    if (etat==GPIO.LOW):
+       appui='5'
+    etat=GPIO.input(8)
+    if (etat==GPIO.LOW):
+       appui='8'
+    etat=GPIO.input(25)
+    if (etat==GPIO.LOW):
+       appui='1'
+    etat=GPIO.input(9)
+    if (etat==GPIO.LOW):
+       appui='4'
+    etat=GPIO.input(5)
+    if (etat==GPIO.LOW):
+       appui='7'
+    if not(appui==None):
+       sleep(0.3)
+    return appui
+
+# define swPin read function when wiring_mode='GENUINE'
+def swpinRead():
+    global ROTARY_param
+    GPIO.output(int(row_list[0]), GPIO.LOW)
+    result=GPIO.input(swPin)
+    if (result==0):
+        key=0
+        GPIO.output(int(row_list[0]), GPIO.HIGH) 
+        globalCounter=0
+        ROTARY_param[4]=0
+        return(key)
+    GPIO.output(int(row_list[0]), GPIO.HIGH)
+    
 time_var=["",""]
 date_var=["",""] 
    
@@ -440,13 +500,15 @@ def save_config(arg):
         return 0
     subprocess.run(["sudo", "umount", mount_path])
   
+if (lcd_mode=='I2C'):
 #------------------------- protocole I2C-------------------------------------------------------------------  
-SCL=3
-SDA=2
-i2c = busio.I2C(SCL, SDA)
-oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+    SCL=3
+    SDA=2
+    i2c = busio.I2C(SCL, SDA)
+    oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
 #------------------------- protocole SPI-------------------------------------------------------------------  
-#oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
+else:
+    oled=adafruit_ssd1306.SSD1306_SPI(128,64,board.SPI(),digitalio.DigitalInOut(board.D22),digitalio.DigitalInOut(board.D27),digitalio.DigitalInOut(board.D8)) 
 #----------------------------------------------------------------------------------------------------------  
 
 oled.fill(0) #clear the OLED Display 
@@ -509,16 +571,28 @@ try:
     key=trig_ir()
     source="IR"
     if key==None: 
-        key=Keypad4x4Read(col_list, row_list)
+        if (wiring_mode=='REWELDED'):
+            key=clavier()
+        else:
+            key=Keypad4x4Read(col_list, row_list)
         source="clavier"
-
-    det=GPIO.input(swPin)
-    if (det==0):
-         globalCounter=0      
-         source="rotary"
-         key=0
-         ROTARY_param[4]=0
-         sleep(0.3)
+    
+    if key==None: 
+        if (wiring_mode=='GENUINE'):
+            key=swpinRead()
+            if key != None:
+                ROTARY_param[4]=0
+                source="clavier"
+                sleep(0.3)   
+        else:
+            #wiring_mode=='MODIFIED'
+            det=GPIO.input(swPin)
+            if (det==0):
+                 globalCounter=0      
+                 source="rotary"
+                 key=0
+                 ROTARY_param[4]=0
+                 sleep(0.3)
 
     if (key==None):       
         counter=ROTARY_param[3]
