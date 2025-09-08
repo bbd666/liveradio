@@ -1,4 +1,12 @@
-#04/09/2025
+#08/09/2025
+
+import requests
+import openmeteo_requests
+import json
+import pandas as pd
+import requests_cache
+from retry_requests import retry
+
 
 import vlc
 import time
@@ -47,6 +55,24 @@ alarm_set=int(config['ALARM']['set'])
 alarm_clck_hour=int(config['ALARM']['hour'])
 alarm_clck_min=int(config['ALARM']['min'])
 alarm_source=config['ALARM']['source']
+jours_actifs=[False]*7
+if (config['ALARM']['lundi']=='1'):
+    jours_actifs[0]=True
+if (config['ALARM']['mardi']=='1'):
+    jours_actifs[1]=True
+if (config['ALARM']['mercredi']=='1'):
+    jours_actifs[2]=True
+if (config['ALARM']['jeudi']=='1'):
+    jours_actifs[3]=True
+if (config['ALARM']['vendredi']=='1'):
+    jours_actifs[4]=True
+if (config['ALARM']['samedi']=='1'):
+    jours_actifs[5]=True
+if (config['ALARM']['dimanche']=='1'):
+    jours_actifs[6]=True
+meteo_location='liverdun'
+meteo_location=config['METEO']['LOCATION']
+
 url=liste_url[channel_ini]
 protocole='rc-5'
 protocole=config['REMOTE']['prtcl']
@@ -83,7 +109,78 @@ ST_melodies=[4,0,0,0]
 usb_path = "/dev/sda1"
 mount_path = "/home/pierre/usb_disk_mount"
 mp3_files=[]             
-                
+           
+def get_weather_description(code: int) -> str:
+    """Convert Open-Meteo weather code to a textual description."""
+    if code == 0:
+        return "Ciel clair"
+    elif code in (1, 2, 3):
+        return "Partiellement couvert"
+    elif code in (45, 48):
+        return "Brouillard"
+    elif code in (51, 53, 55):
+        return "Brume"
+    elif code in (56, 57):
+        return "Brouillard verglacant"
+    elif code in (61, 63, 65):
+        return "Pluie"
+    elif code in (66, 67):
+        return "pluie verglacante"
+    elif code in (71, 73, 75):
+        return "Chute de neige"
+    elif code == 77:
+        return "Flocons"
+    elif code in (80, 81, 82):
+        return "Averses"
+    elif code in (85, 86):
+        return "Giboulées de neige"
+    elif code == 95:
+        return "Orages"
+    elif code in (96, 99):
+        return "Orages avec grêle"
+    else:
+        return "Aucune prévision"
+
+def get_meteo():
+    global update
+    # Setup the Open-Meteo API client with cache and retry on error
+    cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+    retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
+    openmeteo = openmeteo_requests.Client(session = retry_session)
+
+    city=meteo_location
+    result_city = requests.get(url='https://geocoding-api.open-meteo.com/v1/search?name=' + city)
+    location = result_city.json()
+
+    longitude=str(location['results'][0]['longitude'])
+    latitude=str(location['results'][0]['latitude'])
+
+    # Make sure all required weather variables are listed here
+    # The order of variables in hourly or daily is important to assign them correctly below
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": ["temperature_2m", "precipitation_probability", "rain", "wind_speed_10m", "weather_code"],
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    # Process first location. Add a for-loop for multiple locations or weather models
+    response = responses[0]
+    #print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
+    #print(f"Elevation: {response.Elevation()} m asl")
+    #print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+
+    # Process hourly data. The order of variables needs to be the same as requested.
+    hourly = response.Hourly()
+    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
+    hourly_rain = hourly.Variables(2).ValuesAsNumpy()
+    hourly_wind_speed_10m = hourly.Variables(3).ValuesAsNumpy()
+    hourly_weather_code = hourly.Variables(4).ValuesAsNumpy()
+    update=False
+    return hourly
+        
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
     if process.returncode == 0:
@@ -441,6 +538,34 @@ def save_params():
     config.set('ALARM', 'hour',str(alarm_clck_hour) )
     config.set('ALARM', 'min',str(alarm_clck_min) )
     config.set('ALARM', 'source',alarm_source )
+    if (jours_actifs[0]):
+        config.set('ALARM', 'lundi','1')
+    else:
+        config.set('ALARM', 'lundi','0')
+    if (jours_actifs[1]):
+        config.set('ALARM', 'mardi','1')
+    else:
+        config.set('ALARM', 'mardi','0')
+    if (jours_actifs[2]):
+        config.set('ALARM', 'mercredi','1')
+    else:
+        config.set('ALARM', 'mercredi','0')        
+    if (jours_actifs[3]):
+        config.set('ALARM', 'jeudi','1')
+    else:
+        config.set('ALARM', 'jeudi','0')
+    if (jours_actifs[4]):
+        config.set('ALARM', 'vendredi','1')
+    else:
+        config.set('ALARM', 'vendredi','0')
+    if (jours_actifs[5]):
+        config.set('ALARM', 'samedi','1')
+    else:
+        config.set('ALARM', 'samedi','0')
+    if (jours_actifs[6]):
+        config.set('ALARM', 'dimanche','1')
+    else:
+        config.set('ALARM', 'dimanche','0')        
     config.set('WIFI', 'SSID',ssid )
     config.set('WIFI', 'PASSWD', passwd)
     with open('data.ini', 'w') as configfile:   
@@ -540,11 +665,11 @@ ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
    
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP"]
+ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP","METEO"]
 ST2_param=[4,0,0,channel_ini]
 ST2_menu=liste_lbl
 ST3_param=[4,0,0,0]
-ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES"]
+ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES","JOURS ACTIFS"]
 ST100_param=[0,0,0,0]
 ST100_menu=[]
 ST5_param=[4,0,0,0]
@@ -555,7 +680,35 @@ ST41_param=[4,0,0,0]
 ST41_menu=[]
 ST6_param=[4,0,0,0]
 ST6_menu=[]
+ST7_param=[4,0,0,0]
 
+
+def update_alarm_days(arg,items):
+    global update
+    global image_blanche
+    global width
+    global height
+    global oled
+    global draw
+    days=["LUNDI","MARDI","MERCREDI","JEUDI","VENDREDI","SAMEDI","DIMANCHE"]
+    image_blanche = Image.new('1',(128,64))
+    draw=ImageDraw.Draw(image_blanche)
+    arg[1]=arg[3]//arg[0]   #n° de bloc de 4 lignes
+    arg[2]=arg[3]%arg[0]    #n° de ligne (entre 0 et 3)
+    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+    draw.rectangle((0, 2+arg[2]*15, 70, (arg[2]+1)*15), outline=1, fill=1)            
+    for i in range(0,arg[0]):
+        if i+arg[1]*arg[0]<len(days):
+            if (items[i+arg[1]*arg[0]]==True):
+                draw.text((90,2+i*15),'*',font=font3,size=1,fill=1)  
+            if i+arg[1]*arg[0]==arg[3] :
+                draw.text((10,2+i*15),days[i+arg[1]*arg[0]],font=font3,size=1,fill=0)  
+            else :
+                draw.text((10,2+i*15),days[i+arg[1]*arg[0]],font=font3,size=1,fill=1)
+    oled.image(image_blanche)
+    oled.show()
+    update=False
+    
 STATE=0
 digit_sel=0
 last_rotary_position=ROTARY_param[3]
@@ -698,10 +851,11 @@ try:
             
     now=datetime.now()
     
-    if ((alarm_set==1) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
+    if ((alarm_set==1) and (jours_actifs[now.weekday()]==True) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
         if not(player.is_playing()):
             player.set_mrl(alarm_source)
             player.play()
+            player.audio_set_volume(volume)
             STATE=0
 
     match STATE:
@@ -749,6 +903,7 @@ try:
             if (action=='play'):
                 if not(player.is_playing()):
                     player.play()
+                    player.audio_set_volume(volume)
                 else:
                     player.pause()                   
                 
@@ -801,6 +956,10 @@ try:
                 update=True
                 STATE=6         #IP
  
+            if (ST1_param[3]==5 and (action=='select')) :
+                update=True
+                STATE=7         #METEO
+ 
             if (action=='back') : 
                 STATE=0
                             
@@ -810,19 +969,7 @@ try:
             if  (action=='logout' ):
                 save=True
                 STATE=100
-                
-            if ( action=='vol+') :
-                volume=min(volume+5,200)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                update=True
-                
-            if ( action=='vol-') :
-                volume=max(volume-5,0)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                update=True
-                
+  
      case 2:#menus web radios
             if update:
                 init_menu(ST2_param,ST2_menu)
@@ -923,6 +1070,10 @@ try:
             if (ST3_param[3]==3 and (action=='select')) :
                 update=True
                 STATE=33
+
+            if (ST3_param[3]==4 and (action=='select')) :
+                update=True
+                STATE=34
                 
             if (action=='back' ) : 
                 update=True
@@ -1095,6 +1246,52 @@ try:
             if ( action=='home' )  : 
                 STATE=0   
 
+     case 34:#menus selection jours de la semaine
+            if update:
+                update_alarm_days(ST7_param,jours_actifs)
+
+            if ( action=='arrow-' ) :
+                ST7_param[3]=ST7_param[3]+1
+                if ST7_param[3]>len(jours_actifs)-1:
+                    ST7_param[3]=0
+                update=True
+                
+            if ( action=='arrow+' ) :
+                ST7_param[3]=ST7_param[3]-1
+                if ST7_param[3]<0:
+                    ST7_param[3]=len(jours_actifs)-1
+                update=True                
+                
+            if (action=='scroll'):
+                if key>last_rotary_position:
+                    ST7_param[3]=ST7_param[3]+1
+                if key<last_rotary_position:
+                    ST7_param[3]=ST7_param[3]-1
+                if ST7_param[3]>len(jours_actifs)-1:
+                    ST7_param[3]=0
+                if ST7_param[3]<0:
+                    ST7_param[3]=len(jours_actifs)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+
+            if ( action=='select' ) :
+                if (jours_actifs[ST7_param[3]]):
+                    jours_actifs[ST7_param[3]]=False
+                else:
+                    jours_actifs[ST7_param[3]]=True
+                update=True
+
+            if (action=='back') : 
+                update=True
+                STATE=3            
+
+            if  (action=='logout'):
+                save=True
+                STATE=100
+                
+            if ( action=='home' )  : 
+                STATE=0   
+                
      case 4:#menu USB
             if update:
                 init_menu(ST4_param,ST4_menu)
@@ -1186,9 +1383,10 @@ try:
                 update=True
 
             if  (action=='select') :
-                url=mp3_files[ST41_param[3]]
-                player.set_mrl(url)
-                player.play()
+                if (len(mp3_files)>ST41_param[3]):
+                    url=mp3_files[ST41_param[3]]
+                    player.set_mrl(url)
+                    player.play()
                 
             if (action=='back') : 
                 update_usb=True
@@ -1499,6 +1697,30 @@ try:
             if ( action=='home' )  : 
                 STATE=0 
                 
+     case 7:#menu METEO
+            if update:
+              try:
+                meteo=get_meteo();
+                a=meteo.Variables(4).ValuesAsNumpy()
+                print(get_weather_description(a[0]))
+                print(get_weather_description(a[1]))
+                print(get_weather_description(a[2]))
+                print(get_weather_description(a[3]))
+              except:
+                print('error')
+                STATE=1   
+                 
+            if (action=='back') : 
+                update=True
+                STATE=1 
+                
+            if  (action=='logout'):
+                save=True
+                STATE=100
+
+            if ( action=='home' )  : 
+                STATE=0 
+                                
      case 100:#écran de veille
             if save:
                 save_params()
@@ -1506,6 +1728,7 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
+                player.audio_set_volume(0)            
                 if player.is_playing():
                     player.stop()
                 draw=ImageDraw.Draw(image_blanche)
