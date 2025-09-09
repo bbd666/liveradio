@@ -223,7 +223,7 @@ def display_meteo_prev(id,err):
         draw=ImageDraw.Draw(image_bw)
         t=datetime.now()
         t=t+ timedelta(id//24,0)
-        d=t.date()
+        d=t.date() 
         h=f"{id%24:02d}"
         item=meteo_location[0:8]+' '+d.strftime(' %d, %b %Y')+' '+h+':00'
         draw.text((10,2),item,font=font4,size=1,fill=1)
