@@ -189,9 +189,36 @@ def display_meteo_prev(id,err):
     global height
     global oled
     global draw
-    image_blanche = Image.new('1',(128,64))
-    draw=ImageDraw.Draw(image_blanche)
     if (err):
+        if hourly_weather_code ==0:
+            image_blanche=Image.open("meteo_icons/clair.bmp")
+        elif code in (1, 2, 3):
+            image_blanche=Image.open("meteo_icons/part_couvert.bmp")
+         elif hourly_weather_code in (45, 48):
+            image_blanche=Image.open("meteo_icons/brouillard.bmp")
+        elif hourly_weather_code in (51, 53, 55):
+            image_blanche=Image.open("meteo_icons/brume.bmp")
+        elif hourly_weather_code in (56, 57):
+            image_blanche=Image.open("meteo_icons/brouillard-verg.bmp")
+        elif hourly_weather_code in (61, 63, 65):
+            image_blanche=Image.open("meteo_icons/pluie.bmp")
+        elif hourly_weather_code in (66, 67):
+            image_blanche=Image.open("meteo_icons/pluie-verg.bmp")
+        elif hourly_weather_code in (71, 73, 75):
+            image_blanche=Image.open("meteo_icons/neige.bmp")
+        elif hourly_weather_code in (77):
+            image_blanche=Image.open("meteo_icons/flocon.bmp")
+        elif hourly_weather_code in (80, 81, 82):
+            image_blanche=Image.open("meteo_icons/averse.bmp")
+        elif hourly_weather_code in (85, 86):
+            image_blanche=Image.open("meteo_icons/gib-neige.bmp")
+        elif hourly_weather_code in (95):
+            image_blanche=Image.open("meteo_icons/orage.bmp")
+        elif hourly_weather_code in (96, 99):
+            image_blanche=Image.open("meteo_icons/grele.bmp")
+        else:
+            image_blanche=Image.open("meteo_icons/na.bmp")
+        draw=ImageDraw.Draw(image_blanche)
         t=datetime.now()
         t=t+ timedelta(id//24,0)
         d=t.date()
@@ -207,6 +234,8 @@ def display_meteo_prev(id,err):
         item=get_weather_description(hourly_weather_code)
         draw.text((10,52),item,font=font3,size=1,fill=1)
     else:
+        image_blanche = Image.new('1',(128,64))
+        draw=ImageDraw.Draw(image_blanche)
         item='ERREUR: Lieu inexact'
         draw.text((10,32),item,font=font3,size=1,fill=1)
         item='ou serveur ne repond pas'
