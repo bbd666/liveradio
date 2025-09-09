@@ -1,4 +1,4 @@
-#08/09/2025
+#09/09/2025
 
 import requests
 import openmeteo_requests
@@ -20,7 +20,7 @@ from time import sleep
 import digitalio  
 import adafruit_ssd1306 
 import evdev
-from datetime import datetime
+from datetime import datetime,timedelta
 import os
 import subprocess
 from pathlib import Path
@@ -115,7 +115,7 @@ def get_weather_description(code: int) -> str:
     if code == 0:
         return "Ciel clair"
     elif code in (1, 2, 3):
-        return "Partiellement couvert"
+        return "Couvert"
     elif code in (45, 48):
         return "Brouillard"
     elif code in (51, 53, 55):
@@ -161,7 +161,7 @@ def get_meteo():
     params = {
         "latitude": latitude,
         "longitude": longitude,
-        "hourly": ["temperature_2m", "precipitation_probability", "rain", "wind_speed_10m", "weather_code"],
+        "hourly": ["temperature_2m", "precipitation", "precipitation_probability", "weather_code", "wind_speed_10m", "rain"],
     }
     responses = openmeteo.weather_api(url, params=params)
 
@@ -174,13 +174,79 @@ def get_meteo():
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_precipitation_probability = hourly.Variables(1).ValuesAsNumpy()
-    hourly_rain = hourly.Variables(2).ValuesAsNumpy()
-    hourly_wind_speed_10m = hourly.Variables(3).ValuesAsNumpy()
-    hourly_weather_code = hourly.Variables(4).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(1).ValuesAsNumpy()
+    hourly_precipitation_probability = hourly.Variables(2).ValuesAsNumpy()
+    hourly_weather_code = hourly.Variables(3).ValuesAsNumpy()
+    hourly_wind_speed_10m = hourly.Variables(4).ValuesAsNumpy()
+    hourly_rain = hourly.Variables(5).ValuesAsNumpy()
     update=False
     return hourly
-        
+    
+
+def display_meteo_prev(id,err):
+    global image_blanche
+    global width
+    global height
+    global oled
+    global draw
+    if (err):
+        if hourly_weather_code[id] ==0:
+            image_blanche=Image.open("meteo_icons/clair.jpg")
+        elif hourly_weather_code[id] in (1, 2, 3):
+            image_blanche=Image.open("meteo_icons/part_couvert.jpg")
+        elif hourly_weather_code[id] in (45, 48):
+            image_blanche=Image.open("meteo_icons/brouillard.jpg")
+        elif hourly_weather_code[id] in (51, 53, 55):
+            image_blanche=Image.open("meteo_icons/brume.jpg")
+        elif hourly_weather_code[id] in (56, 57):
+            image_blanche=Image.open("meteo_icons/brouillard-verg.jpg")
+        elif hourly_weather_code[id] in (61, 63, 65):
+            image_blanche=Image.open("meteo_icons/pluie.jpg")
+        elif hourly_weather_code[id] in (66, 67):
+            image_blanche=Image.open("meteo_icons/pluie-verg.jpg")
+        elif hourly_weather_code[id] in (71, 73, 75):
+            image_blanche=Image.open("meteo_icons/neige.jpg")
+        elif hourly_weather_code[id] == 77:
+            image_blanche=Image.open("meteo_icons/flocon.jpg")
+        elif hourly_weather_code[id] in (80, 81, 82):
+            image_blanche=Image.open("meteo_icons/averse.jpg")
+        elif hourly_weather_code[id] in (85, 86):
+            image_blanche=Image.open("meteo_icons/gib-neige.jpg")
+        elif hourly_weather_code[id] == 95:
+            image_blanche=Image.open("meteo_icons/orage.jpg")
+        elif hourly_weather_code[id] in (96, 99):
+            image_blanche=Image.open("meteo_icons/grele.jpg")
+        else:
+            image_blanche=Image.open("meteo_icons/na.jpg")
+        image_r = image_blanche.resize((width,height), Image.LANCZOS)
+        image_bw = image_r.convert("1")        
+        draw=ImageDraw.Draw(image_bw)
+        t=datetime.now()
+        t=t+ timedelta(id//24,0)
+        d=t.date()
+        h=f"{id%24:02d}"
+        item=meteo_location[0:8]+' '+d.strftime(' %d, %b %Y')+' '+h+':00'
+        draw.text((10,2),item,font=font4,size=1,fill=1)
+        item='TEMPERATURE : '+str(f"{hourly_temperature_2m[id]:.2f}")+' deg°C'
+        draw.text((10,12),item,font=font100,size=1,fill=1)
+        item='PRECIPITATIONS : '+str(f"{hourly_precipitation[id]:.2f}")+' mm (prob : '+str(f"{hourly_precipitation_probability[id]:.2f}")+'%)'
+        draw.text((10,22),item,font=font100,size=1,fill=1)
+        item='VENT : '+str(f"{hourly_wind_speed_10m[id]:.2f}")+' km/h'
+        draw.text((10,32),item,font=font100,size=1,fill=1)
+        item=get_weather_description(hourly_weather_code[id])
+        draw.text((10,42),item,font=font100,size=1,fill=1)
+        item='heure '+h+':00 '
+        draw.text((10,52),item,font=font4,size=1,fill=1)
+    else:
+        image_bw = Image.new('1',(128,64))
+        draw=ImageDraw.Draw(image_bw)
+        item='ERREUR: Lieu inexact'
+        draw.text((10,32),item,font=font4,size=1,fill=1)
+        item='ou serveur ne repond pas'
+        draw.text((10,47),item,font=font4,size=1,fill=1)      
+    oled.image(image_bw)
+    oled.show()
+         
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
     if process.returncode == 0:
@@ -777,10 +843,14 @@ try:
             action='vol-'
         if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
             action='play'
-        if ( ((source=="IR") and (key==57))or ((source=="clavier") and (key=='2')) ):
+        if ( ((source=="IR") and (key==57)) ):
             action='arrow-'
-        if ( ((source=="IR") and (key==41))or ((source=="clavier") and (key=='8')) ):
+        if ( ((source=="IR") and (key==41)) ):
             action='arrow+'
+        if ( ((source=="IR") and (key==48))or ((source=="clavier") and (key=='2')) ):
+            action='arrow--'
+        if ( ((source=="IR") and (key==50))or ((source=="clavier") and (key=='8')) ):
+            action='arrow++'
         if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
             action='select'
         if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
@@ -958,6 +1028,7 @@ try:
  
             if (ST1_param[3]==5 and (action=='select')) :
                 update=True
+                meteo_prev_id=0
                 STATE=7         #METEO
  
             if (action=='back') : 
@@ -1700,16 +1771,61 @@ try:
      case 7:#menu METEO
             if update:
               try:
-                meteo=get_meteo();
-                a=meteo.Variables(4).ValuesAsNumpy()
-                print(get_weather_description(a[0]))
-                print(get_weather_description(a[1]))
-                print(get_weather_description(a[2]))
-                print(get_weather_description(a[3]))
+                h=get_meteo()
+                hourly_temperature_2m = h.Variables(0).ValuesAsNumpy()
+                hourly_precipitation = h.Variables(1).ValuesAsNumpy()
+                hourly_precipitation_probability = h.Variables(2).ValuesAsNumpy()
+                hourly_weather_code = h.Variables(3).ValuesAsNumpy()
+                hourly_wind_speed_10m = h.Variables(4).ValuesAsNumpy()
+                hourly_rain = h.Variables(5).ValuesAsNumpy()
+                err=True
+                display_meteo_prev(meteo_prev_id,err)
               except:
-                print('error')
-                STATE=1   
-                 
+                 err=False
+                 display_meteo_prev(meteo_prev_id,err)  
+              update=False 
+              
+            if ( action=='arrow-' ) :
+                    meteo_prev_id=meteo_prev_id-1
+                    if meteo_prev_id==-1:
+                        meteo_prev_id=167                     
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    display_meteo_prev(meteo_prev_id,err)
+            if ( action=='arrow+' ) :
+                    meteo_prev_id=meteo_prev_id+1
+                    if meteo_prev_id==167:
+                        meteo_prev_id=0                    
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    display_meteo_prev(meteo_prev_id,err)
+                
+            if ( action=='arrow--' ) :
+                    meteo_prev_id=meteo_prev_id-12
+                    if meteo_prev_id==-1:
+                        meteo_prev_id=167                     
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    display_meteo_prev(meteo_prev_id,err)
+            if ( action=='arrow++' ) :
+                    meteo_prev_id=meteo_prev_id+12
+                    if meteo_prev_id==167:
+                        meteo_prev_id=0                    
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    display_meteo_prev(meteo_prev_id,err)
+
+            if (action=='scroll'):
+                if key>last_rotary_position:
+                    meteo_prev_id=meteo_prev_id+1
+                    if meteo_prev_id==167:
+                        meteo_prev_id=0                    
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                if key<last_rotary_position:
+                    meteo_prev_id=meteo_prev_id-1
+                    if meteo_prev_id==-1:
+                        meteo_prev_id=167                     
+                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                last_rotary_position=ROTARY_param[3]
+                display_meteo_prev(meteo_prev_id,err)
+                update=True
+
             if (action=='back') : 
                 update=True
                 STATE=1 
