@@ -20,7 +20,7 @@ from time import sleep
 import digitalio  
 import adafruit_ssd1306 
 import evdev
-from datetime import datetime
+from datetime import datetime,timedelta
 import os
 import subprocess
 from pathlib import Path
@@ -192,7 +192,11 @@ def display_meteo_prev(id,err):
     image_blanche = Image.new('1',(128,64))
     draw=ImageDraw.Draw(image_blanche)
     if (err):
-        item='LIEU : '+meteo_location
+        t=datetime.now()
+        t=t+ timedelta(id//24,0)
+        d=t.date()
+        h=f"{id%24:02d}"
+        item=meteo_location+' '+d.strftime(' %d, %b %Y')+' '+h+':00'
         draw.text((10,2),item,font=font3,size=1,fill=1)
         item='TEMPERATURE : '+hourly_temperature_2m+' deg°C'
         draw.text((10,17),item,font=font4,size=1,fill=1)
