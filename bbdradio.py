@@ -1203,7 +1203,7 @@ try:
             digit_sel=(digit_sel+1)%4
             update=True
             
-        if ( action=='arrow+' ) :
+        if (( action=='arrow+' ) or ( action=='arrow++' )):
             match digit_sel:
              case 0:
                 alarm_clck_hour=min(alarm_clck_hour+10,23)
@@ -1215,7 +1215,7 @@ try:
                 alarm_clck_min=min(alarm_clck_min+1,59)
             update=True
             
-        if ( action=='arrow-' ) :
+        if (( action=='arrow-' ) or ( action=='arrow--' )):
             match digit_sel:
              case 0:
                 alarm_clck_hour=max(alarm_clck_hour-10,0)
