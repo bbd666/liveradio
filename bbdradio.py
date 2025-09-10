@@ -575,11 +575,11 @@ def set_passwd(arg):
     hauteur=6
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
-    s="SCROLL ou >>,<< : modif"
+    s="SCROLL ou fleches H/B : modif"
     draw.text((5,0),s,font=font100,size=1,fill=1)  
-    s="fleche HAUT ou >>| : ajout"
+    s=' >>| : ajout"
     draw.text((5,10),s,font=font100,size=1,fill=1)  
-    s="fleche BAS ou |<< : suppr"
+    s=" |<< : suppr"
     draw.text((5,20),s,font=font100,size=1,fill=1)  
     s=">|| : valid"
     draw.text((5,30),s,font=font100,size=1,fill=1)  
@@ -1683,11 +1683,11 @@ try:
             last_rotary_position=ROTARY_param[3]
             STATE=5       
                                  
-        if ( action=='arrow+' ) : #touche UP
+        if ( action=='arrow++' ) : #touche UP
             pwd=pwd+"-"
             update=True
             
-        if ( action=='arrow-' ) : #touche DOWN
+        if ( action=='arrow--' ) : #touche DOWN
             pwd=pwd[:-1]  
             update=True
                         
@@ -1706,7 +1706,7 @@ try:
                 last_rotary_position=ROTARY_param[3]
                 update=True
                 
-        if (action=='next') : 
+        if (action=='arrow+') : 
             if len(pwd)>0:
                 r=ord(pwd[len(pwd)-1])+1
                 if r>126:
@@ -1717,7 +1717,7 @@ try:
                 pwd=pwd[:len(pwd)-1]+chr(r)
                 update=True
             
-        if (action=='prev') : 
+        if (action=='arrow-') : 
             if len(pwd)>0:
                 r=ord(pwd[len(pwd)-1])-1
                 if r>126:
@@ -1799,6 +1799,7 @@ try:
                 
             if (ST8_param[3]==0 and (action=='select')) :
                 update=True
+                meteo_loc=meteo_location
                 STATE=71         #METEO change Location
 
             if (ST8_param[3]==1 and (action=='select')) :
@@ -1831,7 +1832,7 @@ try:
 
      case 71:#menu METEO change location
         if update:
-           set_passwd(meteo_location)
+           set_passwd(meteo_loc)
             
         if (action=='back') :            
             update=True
@@ -1839,52 +1840,52 @@ try:
             STATE=7       
                                  
         if ( action=='arrow+' ) : #touche UP
-            meteo_location=meteo_location+"-"
+            meteo_loc=meteo_loc+"-"
             update=True
             
         if ( action=='arrow-' ) : #touche DOWN
-            meteo_location=meteo_location[:-1]  
+            meteo_loc=meteo_loc[:-1]  
             update=True
                         
         if (action=='scroll'):
-            if len(meteo_location)>0:
+            if len(meteo_loc)>0:
                 if key>last_rotary_position:
-                    r=ord(meteo_location[len(meteo_location)-1])+1
+                    r=ord(meteo_loc[len(meteo_loc)-1])+1
                 if key<last_rotary_position:
-                    r=ord(meteo_location[len(meteo_location)-1])-1
+                    r=ord(meteo_loc[len(meteo_loc)-1])-1
                 if r>126:
                     r=32
                 else:
                     if r<32:
                         r=126
-                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
                 last_rotary_position=ROTARY_param[3]
                 update=True
                 
-        if (action=='next') : 
-            if len(meteo_location)>0:
-                r=ord(meteo_location[len(meteo_location)-1])+1
+        if (action=='arrow++') : 
+            if len(meteo_loc)>0:
+                r=ord(meteo_loc[len(meteo_loc)-1])+1
                 if r>126:
                     r=32
                 else:
                     if r<32:
                         r=126
-                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
                 update=True
             
-        if (action=='prev') : 
-            if len(meteo_location)>0:
-                r=ord(meteo_location[len(meteo_location)-1])-1
+        if (action=='arrow--') : 
+            if len(meteo_loc)>0:
+                r=ord(meteo_loc[len(meteo_loc)-1])-1
                 if r>126:
                     r=32
                 else:
                     if r<32:
                         r=126
-                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
                 update=True
             
         if ( action=='play' ) :
-            passwd=meteo_location
+            meteo_location=meteo_loc
                 
         if  (action=='logout'):
                 save=True
