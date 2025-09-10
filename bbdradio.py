@@ -576,8 +576,8 @@ def set_passwd(arg):
     draw=ImageDraw.Draw(image_blanche)
     draw.rectangle((0, 0, width, height), outline=0, fill=0)          
     s="SCROLL ou fleches H/B : modif"
-    draw.text((5,0),s,font=font100,size=1,fill=1)  
-    s=' >>| : ajout"
+    draw.text((5,0),s,font=font200,size=1,fill=1)  
+    s=" >>| : ajout"
     draw.text((5,10),s,font=font100,size=1,fill=1)  
     s=" |<< : suppr"
     draw.text((5,20),s,font=font100,size=1,fill=1)  
