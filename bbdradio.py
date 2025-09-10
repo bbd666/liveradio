@@ -747,6 +747,8 @@ ST41_menu=[]
 ST6_param=[4,0,0,0]
 ST6_menu=[]
 ST7_param=[4,0,0,0]
+ST8_param=[4,0,0,0]
+ST8_menu=["LIEU","PREVISIONS"]
 
 
 def update_alarm_days(arg,items):
@@ -1028,7 +1030,6 @@ try:
  
             if (ST1_param[3]==5 and (action=='select')) :
                 update=True
-                meteo_prev_id=0
                 STATE=7         #METEO
  
             if (action=='back') : 
@@ -1768,7 +1769,131 @@ try:
             if ( action=='home' )  : 
                 STATE=0 
                 
-     case 7:#menu METEO
+     case 7:#menus METEO
+            if update:
+                init_menu(ST8_param,ST8_menu)
+
+            if ( action=='arrow-' ) :
+                ST8_param[3]=ST8_param[3]+1
+                if ST8_param[3]>len(ST8_menu)-1:
+                    ST8_param[3]=0
+                update=True
+                
+            if ( action=='arrow+' ) :
+                ST8_param[3]=ST8_param[3]-1
+                if ST8_param[3]<0:
+                    ST8_param[3]=len(ST8_menu)-1
+                update=True
+                
+            if (action=='scroll'):
+                if key>last_rotary_position:
+                    ST8_param[3]=ST8_param[3]+1
+                if key<last_rotary_position:
+                    ST8_param[3]=ST8_param[3]-1
+                if ST8_param[3]>len(ST8_menu)-1:
+                    ST8_param[3]=0
+                if ST8_param[3]<0:
+                    ST8_param[3]=len(ST8_menu)-1
+                last_rotary_position=ROTARY_param[3]
+                update=True
+                
+            if (ST8_param[3]==0 and (action=='select')) :
+                update=True
+                STATE=71         #METEO change Location
+
+            if (ST8_param[3]==1 and (action=='select')) :
+                update=True
+                meteo_prev_id=0
+                STATE=72         #METEO previsions
+                
+            if ( action=='vol+') :
+                volume=min(volume+5,200)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+                update=True
+                
+            if ( action=='vol-') :
+                volume=max(volume-5,0)
+                sound_box(volume)
+                player.audio_set_volume(volume)
+                update=True
+                
+            if (action=='back') : 
+                STATE=1            
+                update=True
+                
+            if (action=='home')  : 
+                STATE=0   
+
+            if (action=='logout'):
+                save=True
+                STATE=100
+
+     case 71:#menu METEO change location
+        if update:
+           set_passwd(meteo_location)
+            
+        if (action=='back') :            
+            update=True
+            last_rotary_position=ROTARY_param[3]
+            STATE=7       
+                                 
+        if ( action=='arrow+' ) : #touche UP
+            meteo_location=meteo_location+"-"
+            update=True
+            
+        if ( action=='arrow-' ) : #touche DOWN
+            meteo_location=meteo_location[:-1]  
+            update=True
+                        
+        if (action=='scroll'):
+            if len(meteo_location)>0:
+                if key>last_rotary_position:
+                    r=ord(meteo_location[len(meteo_location)-1])+1
+                if key<last_rotary_position:
+                    r=ord(meteo_location[len(meteo_location)-1])-1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                last_rotary_position=ROTARY_param[3]
+                update=True
+                
+        if (action=='next') : 
+            if len(meteo_location)>0:
+                r=ord(meteo_location[len(meteo_location)-1])+1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                update=True
+            
+        if (action=='prev') : 
+            if len(meteo_location)>0:
+                r=ord(meteo_location[len(meteo_location)-1])-1
+                if r>126:
+                    r=32
+                else:
+                    if r<32:
+                        r=126
+                meteo_location=meteo_location[:len(meteo_location)-1]+chr(r)
+                update=True
+            
+        if ( action=='play' ) :
+            passwd=meteo_location
+                
+        if  (action=='logout'):
+                save=True
+                STATE=100
+ 
+        if ( action=='home' )  : 
+            STATE=0   
+
+     case 72:#menu METEO previsions
             if update:
               try:
                 h=get_meteo()
@@ -1828,7 +1953,7 @@ try:
 
             if (action=='back') : 
                 update=True
-                STATE=1 
+                STATE=7 
                 
             if  (action=='logout'):
                 save=True
