@@ -748,7 +748,7 @@ ST6_param=[4,0,0,0]
 ST6_menu=[]
 ST7_param=[4,0,0,0]
 ST8_param=[4,0,0,0]
-ST8_menu=["LIEU","PREVISIONS"]
+ST8_menu=["LOCALISATION","PREVISIONS"]
 
 
 def update_alarm_days(arg,items):
