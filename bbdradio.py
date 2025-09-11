@@ -1917,12 +1917,15 @@ try:
                         meteo_prev_id=167                     
                     meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
                     display_meteo_prev(meteo_prev_id,err)
+                    update=True
+
             if ( action=='arrow+' ) :
                     meteo_prev_id=meteo_prev_id+1
                     if meteo_prev_id==167:
                         meteo_prev_id=0                    
                     meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
                     display_meteo_prev(meteo_prev_id,err)
+                    update=True
                 
             if ( action=='arrow--' ) :
                     meteo_prev_id=meteo_prev_id-12
@@ -1930,12 +1933,15 @@ try:
                         meteo_prev_id=167                     
                     meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
                     display_meteo_prev(meteo_prev_id,err)
+                    update=True
+                    
             if ( action=='arrow++' ) :
                     meteo_prev_id=meteo_prev_id+12
                     if meteo_prev_id==167:
                         meteo_prev_id=0                    
                     meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
                     display_meteo_prev(meteo_prev_id,err)
+                    update=True
 
             if (action=='scroll'):
                 if key>last_rotary_position:
