@@ -184,41 +184,40 @@ def get_meteo():
     
 
 def display_meteo_prev(id,err):
-    global image_blanche
     global width
     global height
     global oled
     global draw
     if (err):
         if hourly_weather_code[id] ==0:
-            image_blanche=Image.open("meteo_icons/clair.jpg")
+            image_meteo=Image.open("meteo_icons/clair.jpg")
         elif hourly_weather_code[id] in (1, 2, 3):
-            image_blanche=Image.open("meteo_icons/part_couvert.jpg")
+            image_meteo=Image.open("meteo_icons/part_couvert.jpg")
         elif hourly_weather_code[id] in (45, 48):
-            image_blanche=Image.open("meteo_icons/brouillard.jpg")
+            image_meteo=Image.open("meteo_icons/brouillard.jpg")
         elif hourly_weather_code[id] in (51, 53, 55):
-            image_blanche=Image.open("meteo_icons/brume.jpg")
+            image_meteo=Image.open("meteo_icons/brume.jpg")
         elif hourly_weather_code[id] in (56, 57):
-            image_blanche=Image.open("meteo_icons/brouillard-verg.jpg")
+            image_meteo=Image.open("meteo_icons/brouillard-verg.jpg")
         elif hourly_weather_code[id] in (61, 63, 65):
-            image_blanche=Image.open("meteo_icons/pluie.jpg")
+            image_meteo=Image.open("meteo_icons/pluie.jpg")
         elif hourly_weather_code[id] in (66, 67):
-            image_blanche=Image.open("meteo_icons/pluie-verg.jpg")
+            image_meteo=Image.open("meteo_icons/pluie-verg.jpg")
         elif hourly_weather_code[id] in (71, 73, 75):
-            image_blanche=Image.open("meteo_icons/neige.jpg")
+            image_meteo=Image.open("meteo_icons/neige.jpg")
         elif hourly_weather_code[id] == 77:
-            image_blanche=Image.open("meteo_icons/flocon.jpg")
+            image_meteo=Image.open("meteo_icons/flocon.jpg")
         elif hourly_weather_code[id] in (80, 81, 82):
-            image_blanche=Image.open("meteo_icons/averse.jpg")
+            image_meteo=Image.open("meteo_icons/averse.jpg")
         elif hourly_weather_code[id] in (85, 86):
-            image_blanche=Image.open("meteo_icons/gib-neige.jpg")
+            image_meteo=Image.open("meteo_icons/gib-neige.jpg")
         elif hourly_weather_code[id] == 95:
-            image_blanche=Image.open("meteo_icons/orage.jpg")
+            image_meteo=Image.open("meteo_icons/orage.jpg")
         elif hourly_weather_code[id] in (96, 99):
-            image_blanche=Image.open("meteo_icons/grele.jpg")
+            image_meteo=Image.open("meteo_icons/grele.jpg")
         else:
-            image_blanche=Image.open("meteo_icons/na.jpg")
-        image_r = image_blanche.resize((width,height), Image.LANCZOS)
+            image_meteo=Image.open("meteo_icons/na.jpg")
+        image_r = image_meteo.resize((width,height), Image.LANCZOS)
         image_bw = image_r.convert("1")        
         draw=ImageDraw.Draw(image_bw)
         t=datetime.now()
