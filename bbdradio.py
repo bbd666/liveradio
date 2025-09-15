@@ -80,6 +80,9 @@ protocole=config['REMOTE']['prtcl']
 lcd_mode='I2C'
 lcd_mode=config['LCD']['DISPLAY']
 
+update_count=0
+is_connected=True
+
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
@@ -286,7 +289,6 @@ def connect_to(ssid: str, password: str):
     except Exception as e:
       print(f"Erreur système : {str(e)}")
       return False
-
 
 def connect_to_saved(ssid: str):
     if not is_wifi_available(ssid):
@@ -938,7 +940,10 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
-                if is_connected_to(ssid):
+                update_count=(update_count+1)%30
+                if (update_count==0):
+                    is_connected=is_connected_to(ssid)
+                if is_connected:
                     draw=ImageDraw.Draw(image_bw_connected)
                 else:
                     draw=ImageDraw.Draw(image_bw)                
@@ -947,7 +952,7 @@ try:
                 set_time(0)
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
-                if is_connected_to(ssid):
+                if is_connected:
                     oled.image(image_bw_connected)
                 else:
                     oled.image(image_bw)
