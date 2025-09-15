@@ -218,8 +218,8 @@ def display_meteo_prev(id,err):
         else:
             image_meteo=Image.open("meteo_icons/na.jpg")
         image_r = image_meteo.resize((width,height), Image.LANCZOS)
-        image_bw = image_r.convert("1")        
-        draw=ImageDraw.Draw(image_bw)
+        fond_meteo = image_r.convert("1")        
+        draw=ImageDraw.Draw(fond_meteo)
         t=datetime.now()
         t=t+ timedelta(id//24,0)
         d=t.date() 
@@ -237,13 +237,13 @@ def display_meteo_prev(id,err):
         item='heure '+h+':00 '
         draw.text((10,52),item,font=font4,size=1,fill=1)
     else:
-        image_bw = Image.new('1',(128,64))
-        draw=ImageDraw.Draw(image_bw)
+        fond_meteo = Image.new('1',(128,64))
+        draw=ImageDraw.Draw(fond_meteo)
         item='ERREUR: Lieu inexact'
         draw.text((10,32),item,font=font4,size=1,fill=1)
         item='ou serveur ne repond pas'
         draw.text((10,47),item,font=font4,size=1,fill=1)      
-    oled.image(image_bw)
+    oled.image(fond_meteo)
     oled.show()
          
 def what_wifi():
@@ -712,6 +712,10 @@ image = Image.open("logo.jpg")
 image_r = image.resize((width,height), Image.LANCZOS)
 image_bw = image_r.convert("1")
 oled.image(image_bw)
+image = Image.open("logo_connected.jpg")
+image_r = image.resize((width,height), Image.LANCZOS)
+image_bw = image_r.convert("1")
+oled.image(image_bw_connected)
 draw=ImageDraw.Draw(image_blanche)
 
 player = vlc.MediaPlayer()
@@ -934,13 +938,19 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
-                draw=ImageDraw.Draw(image_bw) 
+                if is_connected_to(ssid):
+                    draw=ImageDraw.Draw(image_bw_connected)
+                else:
+                    draw=ImageDraw.Draw(image_bw)                
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=0)  
                 set_time(0)
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
-                oled.image(image_bw)
+                if is_connected_to(ssid):
+                    oled.image(image_bw_connected)
+                else:
+                    oled.image(image_bw)
                 oled.show()
                 lastnow=now            
             
