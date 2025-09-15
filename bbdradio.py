@@ -252,7 +252,8 @@ def display_meteo_prev(id,err):
 def what_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
     if process.returncode == 0:
-        return process.stdout.decode('utf-8').strip().split(':')[1]
+        a=process.stdout.decode('utf-8').strip().split(':')[1]
+        return a.split("\n")[0]
     else:
         return ''
 
@@ -710,14 +711,15 @@ width = 128
 height = 64
 image_blanche = Image.new('1',(128,64))
 
+
+image = Image.open("logo_connected.jpg")
+image_r = image.resize((width,height), Image.LANCZOS)
+image_bw_connected = image_r.convert("1")
+oled.image(image_bw_connected)
 image = Image.open("logo.jpg")
 image_r = image.resize((width,height), Image.LANCZOS)
 image_bw = image_r.convert("1")
 oled.image(image_bw)
-image = Image.open("logo_connected.jpg")
-image_r = image.resize((width,height), Image.LANCZOS)
-image_bw = image_r.convert("1")
-oled.image(image_bw_connected)
 draw=ImageDraw.Draw(image_blanche)
 
 player = vlc.MediaPlayer()
@@ -941,12 +943,14 @@ try:
             deltat=now-lastnow
             if (deltat.microseconds>950000):
                 update_count=(update_count+1)%30
-                if (update_count==0):
+                if (update_count==5):
                     is_connected=is_connected_to(ssid)
                 if is_connected:
                     draw=ImageDraw.Draw(image_bw_connected)
                 else:
-                    draw=ImageDraw.Draw(image_bw)                
+                    draw=ImageDraw.Draw(image_bw)
+                    print('*'+ssid+'*')
+                    print('*'+what_wifi()+'*')
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=0)  
                 set_time(0)
