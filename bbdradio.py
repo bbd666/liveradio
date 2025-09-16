@@ -255,7 +255,7 @@ def get_wifi_snr():
         a=process.stdout.decode('utf-8').strip().split('\n')
         for i in range(0,len(a)):
             b=a[i].split(':')
-            if (b[0]=='yes'):
+            if (b[0]=='yes') or (b[0]=='oui') :
                 c=b[1]
                 d=b[2]
         r=[]
