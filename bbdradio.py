@@ -256,9 +256,26 @@ def what_wifi():
         return a.split("\n")[0]
     else:
         return ''
+        
+def get_wifi_snr():
+    process = subprocess.run(['nmcli', '-t', '-f', 'IN-USE,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
+    if process.returncode == 0:
+        a=process.stdout.decode('utf-8').strip().split(':')[1]
+        a.split("\n")[0]
+        r=[]
+        b=a.split(' ')[0]
+        b=b.strip()
+        r.append(b)
+        b=a.split(' ')[1]
+        b=b.strip()
+        r.append(b)
+        return r
+    else:
+        return ''
 
 def is_connected_to(ssid: str):
-    return what_wifi() == ssid   
+    a=get_wifi_snr()    
+    return a[0] == ssid   
 
 def scan_wifi():
     process = subprocess.run(['nmcli', '-t', '-f', 'SSID,SECURITY,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
@@ -948,11 +965,13 @@ try:
             now=datetime.now()
             deltat=now-lastnow
             if (deltat.microseconds>950000):
-                update_count=(update_count+1)%30
-                if (update_count==5):
-                    is_connected=is_connected_to(ssid)
-                if is_connected:
+                update_count=(update_count+1)%30  
+                #teste le signal wifi toutes les 30 s
+                if (update_count==1):
+                    scan=get_wifi_snr()
+                if (scan[0]==ssid):
                     draw=ImageDraw.Draw(image_bw_connected)
+                    draw.text((110,63),scan[1],font=font200,size=1,fill=0)
                 else:
                     draw=ImageDraw.Draw(image_bw)
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
@@ -960,7 +979,7 @@ try:
                 set_time(0)
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
-                if is_connected:
+                if (scan[0]==ssid):
                     oled.image(image_bw_connected)
                 else:
                     oled.image(image_bw)
