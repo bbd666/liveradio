@@ -250,17 +250,17 @@ def display_meteo_prev(id,err):
     oled.show()        
         
 def get_wifi_snr():
-    process = subprocess.run(['nmcli', '-t', '-f', 'IN-USE,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
+    process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
     if process.returncode == 0:
-        a=process.stdout.decode('utf-8').strip().split(':')[1]
-        a.split("\n")[0]
+        a=process.stdout.decode('utf-8').strip().split('\n')
+        for i in range(0,len(a)):
+            b=a[i].split(':')
+            if (b[0]=='yes'):
+                c=b[1]
+                d=b[2]
         r=[]
-        b=a.split(' ')[0]
-        b=b.strip()
-        r.append(b)
-        b=a.split(' ')[1]
-        b=b.strip()
-        r.append(b)
+        r.append(c)
+        r.append(d)
         return r
     else:
         return ''
@@ -963,14 +963,16 @@ try:
                     scan=get_wifi_snr()
                 if (scan[0]==ssid):
                     draw=ImageDraw.Draw(image_bw_connected)
-                    draw.text((110,63),scan[1],font=font200,size=1,fill=0)
+                    draw.text((115,42),scan[1],font=font200,size=1,fill=1)
                 else:
                     draw=ImageDraw.Draw(image_bw)
+                    print(ssid)
+                    print(scan[0])
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
-                draw.text((40,45),date_var[0],font=font2,size=1,fill=0)  
+                draw.text((32,45),date_var[0],font=font2,size=1,fill=0)  
                 set_time(0)
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
-                draw.text((40,45),date_var[0],font=font2,size=1,fill=1)  
+                draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
                 if (scan[0]==ssid):
                     oled.image(image_bw_connected)
                 else:
