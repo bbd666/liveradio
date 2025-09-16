@@ -1,4 +1,4 @@
-#09/09/2025
+#16/09/2025
 
 import requests
 import openmeteo_requests
@@ -931,8 +931,14 @@ try:
     now=datetime.now()
     
     if ((alarm_set==1) and (jours_actifs[now.weekday()]==True) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
+        alarm_src=alarm_source
+        for i in range (0,int(nb)):        
+            if (alarm_source==liste_url[i]):
+                is_connected=is_connected_to(ssid)
+                if not(is_connected):
+                    alarm_src='composition Theodor.mp3'                    
         if not(player.is_playing()):
-            player.set_mrl(alarm_source)
+            player.set_mrl(alarm_src)
             player.play()
             player.audio_set_volume(volume)
             STATE=0
@@ -949,8 +955,6 @@ try:
                     draw=ImageDraw.Draw(image_bw_connected)
                 else:
                     draw=ImageDraw.Draw(image_bw)
-                    print('*'+ssid+'*')
-                    print('*'+what_wifi()+'*')
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
                 draw.text((40,45),date_var[0],font=font2,size=1,fill=0)  
                 set_time(0)
