@@ -247,15 +247,7 @@ def display_meteo_prev(id,err):
         item='ou serveur ne repond pas'
         draw.text((10,47),item,font=font4,size=1,fill=1)      
     oled.image(fond_meteo)
-    oled.show()
-         
-def what_wifi():
-    process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID', 'dev', 'wifi'], stdout=subprocess.PIPE)
-    if process.returncode == 0:
-        a=process.stdout.decode('utf-8').strip().split(':')[1]
-        return a.split("\n")[0]
-    else:
-        return ''
+    oled.show()        
         
 def get_wifi_snr():
     process = subprocess.run(['nmcli', '-t', '-f', 'IN-USE,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
