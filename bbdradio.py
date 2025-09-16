@@ -82,6 +82,7 @@ lcd_mode=config['LCD']['DISPLAY']
 
 update_count=0
 is_connected=True
+snr=''
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -250,6 +251,7 @@ def display_meteo_prev(id,err):
     oled.show()        
         
 def get_wifi_snr():
+    r=[]    
     process = subprocess.run(['nmcli', '-t', '-f', 'ACTIVE,SSID,SIGNAL', 'dev', 'wifi'], stdout=subprocess.PIPE)
     if process.returncode == 0:
         a=process.stdout.decode('utf-8').strip().split('\n')
@@ -258,12 +260,11 @@ def get_wifi_snr():
             if (b[0]=='yes') or (b[0]=='oui') :
                 c=b[1]
                 d=b[2]
-        r=[]
         r.append(c)
         r.append(d)
-        return r
-    else:
-        return ''
+    r.append('xxx')
+    r.append('0')
+    return r
 
 def is_connected_to(ssid: str):
     a=get_wifi_snr()    
@@ -963,7 +964,9 @@ try:
                     scan=get_wifi_snr()
                 if (scan[0]==ssid):
                     draw=ImageDraw.Draw(image_bw_connected)
-                    draw.text((115,42),scan[1],font=font200,size=1,fill=1)
+                    draw.text((115,42),snr,font=font100,size=1,fill=0)
+                    snr=scan[1]
+                    draw.text((115,42),snr,font=font100,size=1,fill=1)
                 else:
                     draw=ImageDraw.Draw(image_bw)
                     print(ssid)
