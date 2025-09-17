@@ -2008,8 +2008,7 @@ try:
                 save=False
             now=datetime.now()
             deltat=now-lastnow
-            if (deltat.microseconds>950000):
-                player.audio_set_volume(0)            
+            if (deltat.microseconds>950000):         
                 if player.is_playing():
                     player.stop()
                 draw=ImageDraw.Draw(image_blanche)
