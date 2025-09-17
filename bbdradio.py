@@ -969,8 +969,6 @@ try:
                     draw.text((115,42),snr,font=font100,size=1,fill=1)
                 else:
                     draw=ImageDraw.Draw(image_bw)
-                    print(ssid)
-                    print(scan[0])
                 draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
                 draw.text((32,45),date_var[0],font=font2,size=1,fill=0)  
                 set_time(0)
