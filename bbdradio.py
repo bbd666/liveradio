@@ -1673,12 +1673,11 @@ try:
                 ST5_param[3]=ST5_param[3]+1
                 if ST5_param[3]>len(ST5_menu)-1:
                     ST5_param[3]=0
-                update=True
+                               
             if ( action=='arrow+' ) :
                 ST5_param[3]=ST5_param[3]-1
                 if ST5_param[3]<0:
-                    ST5_param[3]=len(ST5_menu)-1
-                update=True
+                    ST5_param[3]=len(ST5_menu)-1                               
                 
             if (action=='scroll'):
                 if key>last_rotary_position:
@@ -1689,8 +1688,7 @@ try:
                     ST5_param[3]=0
                 if ST5_param[3]<0:
                     ST5_param[3]=len(ST5_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
+                last_rotary_position=ROTARY_param[3]                             
 
             if  (action=='select') :
                 update=True
