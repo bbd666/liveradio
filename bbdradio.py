@@ -1008,11 +1008,11 @@ try:
             if ( action=='vol-' ):
                 volume=max(volume-5,0)
                 sound_box(volume)
+                player.audio_set_volume(volume)
  
             if (action=='play'):
                 if not(player.is_playing()):
                     player.play()
-                    player.audio_set_volume(volume)
                 else:
                     player.pause()                   
                 
