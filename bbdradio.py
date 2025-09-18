@@ -186,7 +186,6 @@ def get_meteo():
     update=False
     return hourly
     
-
 def display_meteo_prev(id,err):
     global width
     global height
@@ -258,10 +257,8 @@ def get_wifi_snr():
         for i in range(0,len(a)):
             b=a[i].split(':')
             if (b[0]=='yes') or (b[0]=='oui') :
-                c=b[1]
-                d=b[2]
-        r.append(c)
-        r.append(d)
+                r.append(b[1])
+                r.append(b[2])
     r.append('xxx')
     r.append('0')
     return r
@@ -767,7 +764,6 @@ ST7_param=[4,0,0,0]
 ST8_param=[4,0,0,0]
 ST8_menu=["LOCALISATION","PREVISIONS"]
 
-
 def update_alarm_days(arg,items):
     global update
     global image_blanche
@@ -946,9 +942,9 @@ try:
             if (alarm_source==liste_url[i]):
                 is_connected=is_connected_to(ssid)
                 if not(is_connected):
-                    alarm_src='composition Theodor.mp3'                    
+                    alarm_src='composition Theodor.mp3'   
+                    player.set_mrl(alarm_src)                    
         if not(player.is_playing()):
-            player.set_mrl(alarm_src)
             player.play()
             player.audio_set_volume(volume)
             STATE=0
