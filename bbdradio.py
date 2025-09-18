@@ -1,5 +1,6 @@
-#17/09/2025
+#18/09/2025
 
+import logging
 import requests
 import openmeteo_requests
 import json
@@ -26,6 +27,9 @@ import subprocess
 from pathlib import Path
 import shutil
 import busio
+
+logging.basicConfig(filename='/tmp/myapp.log', level=logging.DEBUG,format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logger=logging.getLogger(__name__)
 
 ssid=""
 passwd=""
@@ -798,1230 +802,1234 @@ action=''
 
 if (not(passwd=="") and (not(ssid==""))):
   connect_to(ssid,passwd)
-
+  
 try:
- while True:
-            
-    key=trig_ir()
-    source="IR"
-    if key==None: 
-        if (wiring_mode=='REWELDED'):
-            key=clavier()
-        else:
-            key=Keypad4x4Read(col_list, row_list)
-        source="clavier"
-    
-    if key==None: 
-        if (wiring_mode=='GENUINE'):
-            key=swpinRead()
-            if key != None:
-                ROTARY_param[4]=0
-                source="clavier"
-                sleep(0.3)   
-        else:
-            #wiring_mode=='MODIFIED'
-            det=GPIO.input(swPin)
-            if (det==0):
-                 globalCounter=0      
-                 source="rotary"
-                 key=0
-                 ROTARY_param[4]=0
-                 sleep(0.3)
+    try:
+     while True:
+                
+        key=trig_ir()
+        source="IR"
+        if key==None: 
+            if (wiring_mode=='REWELDED'):
+                key=clavier()
+            else:
+                key=Keypad4x4Read(col_list, row_list)
+            source="clavier"
+        
+        if key==None: 
+            if (wiring_mode=='GENUINE'):
+                key=swpinRead()
+                if key != None:
+                    ROTARY_param[4]=0
+                    source="clavier"
+                    sleep(0.3)   
+            else:
+                #wiring_mode=='MODIFIED'
+                det=GPIO.input(swPin)
+                if (det==0):
+                     globalCounter=0      
+                     source="rotary"
+                     key=0
+                     ROTARY_param[4]=0
+                     sleep(0.3)
 
-    if (key==None):       
-        counter=ROTARY_param[3]
-        rotaryDeal(ROTARY_param)
-        if not(counter==ROTARY_param[3]):
-         source="rotary"
-         key=ROTARY_param[3]
-         ROTARY_param[4]=-1
-        else:
-         source=""
-         
-    if not(key==None):
-        print(source)
-        print(key)   
-    
-    if protocole=='rc-5':
-        action=''
-        if (((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6'))) :
-            action='home'
-        if  (((source=="IR") and (key==0) ) or ((source=="clavier") and (key=='3'))):
-            action='logout'
-        if ((source=="rotary") and (ROTARY_param[4]==-1)):
-            action='scroll'
-        if ( (source=="IR") and (key==40)) :
-            action='square'
-        if ( (source=="IR") and (key==43) ) :
-            action='vol+'
-        if ( (source=="IR") and (key==51) ) :
-            action='vol-'
-        if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
-            action='play'
-        if ( ((source=="IR") and (key==57)) ):
-            action='arrow-'
-        if ( ((source=="IR") and (key==41)) ):
-            action='arrow+'
-        if ( ((source=="IR") and (key==48))or ((source=="clavier") and (key=='2')) ):
-            action='arrow--'
-        if ( ((source=="IR") and (key==50))or ((source=="clavier") and (key=='8')) ):
-            action='arrow++'
-        if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            action='select'
-        if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
-            action='back'
-        if ( (source=="clavier") and (key=='1') ) :
-            action='prev'
-        if ( (source=="clavier") and (key=='7') ) :
-            action='next'
-        #print('back')
- 
-    if protocole=='nec':
-        action=''
-        if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
-            action='home'
-        if  (((source=="IR") and (key==516) ) or ((source=="clavier") and (key=='3'))):
-            action='logout'
-        if ((source=="rotary") and (ROTARY_param[4]==-1)):
-            action='scroll'
-        if ( (source=="IR") and (key==520)) :
-            action='square'
-        if ( (source=="IR") and (key==518) ) :
-            action='vol+'
-        if ( (source=="IR") and (key==517) ) :
-            action='vol-'
-        if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key=='5')) ) :
-            action='play'
-        if ( ((source=="IR") and (key==513))or ((source=="clavier") and (key=='2')) ):
-            action='arrow-'
-        if ( ((source=="IR") and (key==514))or ((source=="clavier") and (key=='8')) ):
-            action='arrow+'
-        if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            action='select'
-        if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
-            action='back'
-        if ( (source=="clavier") and (key=='1') ) :
-            action='prev'
-        if ( (source=="clavier") and (key=='7') ) :
-            action='next'
-            
-    if protocole=='keyes':
-        action=''
-        if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
-            action='home'
-        if  (((source=="IR") and (key==82) ) or ((source=="clavier") and (key=='3'))):
-            action='logout'
-        if ((source=="rotary") and (ROTARY_param[4]==-1)):
-            action='scroll'
-        if ( (source=="IR") and (key==8)) :
-            action='square'
-        if ( (source=="IR") and (key==70) ) :
-            action='vol+'
-        if ( (source=="IR") and (key==21) ) :
-            action='vol-'
-        if ( ((source=="IR") and (key==28)) or ((source=="clavier") and (key=='5')) ) :
-            action='play'
-        if ( ((source=="IR") and (key==67))or ((source=="clavier") and (key=='2')) ):
-            action='arrow-'
-        if ( ((source=="IR") and (key==68))or ((source=="clavier") and (key=='8')) ):
-            action='arrow+'
-        if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
-            action='select'
-        if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
-            action='back'
-        if ( (source=="clavier") and (key=='1') ) :
-            action='prev'
-        if ( (source=="clavier") and (key=='7') ) :
-            action='next'
-            
-    now=datetime.now()
-    
-    if ((alarm_set==1) and (jours_actifs[now.weekday()]==True) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
-        alarm_src=alarm_source
-        for i in range (0,int(nb)):        
-            if (alarm_source==liste_url[i]):
-                is_connected=is_connected_to(ssid)
-                if not(is_connected):
-                    alarm_src='composition Theodor.mp3'   
-                    player.set_mrl(alarm_src)                    
-        if not(player.is_playing()):
-            player.play()
-            player.audio_set_volume(volume)
-            STATE=0
-
-    match STATE:
-     case 0:#ecran d'accueil                
-            now=datetime.now()
-            deltat=now-lastnow
-            if (deltat.microseconds>950000):
-                update_count=(update_count+1)%30  
-                #teste le signal wifi toutes les 30 s
-                if (update_count==1):
-                    scan=get_wifi_snr()
-                if (scan[0]==ssid):
-                    draw=ImageDraw.Draw(image_bw_connected)
-                    draw.text((115,42),snr,font=font100,size=1,fill=0)
-                    snr=scan[1]
-                    draw.text((115,42),snr,font=font100,size=1,fill=1)
-                else:
-                    draw=ImageDraw.Draw(image_bw)
-                draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
-                draw.text((32,45),date_var[0],font=font2,size=1,fill=0)  
-                set_time(0)
-                draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
-                draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
-                if (scan[0]==ssid):
-                    oled.image(image_bw_connected)
-                else:
-                    oled.image(image_bw)
-                oled.show()
-                lastnow=now            
-            
-            if  (action=='select'):
-                update=True                
-                STATE=1
+        if (key==None):       
+            counter=ROTARY_param[3]
+            rotaryDeal(ROTARY_param)
+            if not(counter==ROTARY_param[3]):
+             source="rotary"
+             key=ROTARY_param[3]
+             ROTARY_param[4]=-1
+            else:
+             source=""
+             
+        if not(key==None):
+            print(source)
+            print(key)   
+        
+        if protocole=='rc-5':
+            action=''
+            if (((source=="IR") and (key==3)) or ((source=="clavier") and (key=='6'))) :
+                action='home'
+            if  (((source=="IR") and (key==0) ) or ((source=="clavier") and (key=='3'))):
+                action='logout'
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                action='scroll'
+            if ( (source=="IR") and (key==40)) :
+                action='square'
+            if ( (source=="IR") and (key==43) ) :
+                action='vol+'
+            if ( (source=="IR") and (key==51) ) :
+                action='vol-'
+            if ( ((source=="IR") and (key==42)) or ((source=="clavier") and (key=='5')) ) :
+                action='play'
+            if ( ((source=="IR") and (key==57)) ):
+                action='arrow-'
+            if ( ((source=="IR") and (key==41)) ):
+                action='arrow+'
+            if ( ((source=="IR") and (key==48))or ((source=="clavier") and (key=='2')) ):
+                action='arrow--'
+            if ( ((source=="IR") and (key==50))or ((source=="clavier") and (key=='8')) ):
+                action='arrow++'
+            if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                action='select'
+            if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
+                action='back'
+            if ( (source=="clavier") and (key=='1') ) :
+                action='prev'
+            if ( (source=="clavier") and (key=='7') ) :
+                action='next'
+            #print('back')
+     
+        if protocole=='nec':
+            action=''
+            if ( ((source=="IR") and (key==538)) or ((source=="clavier") and (key=='6')) ) :
+                action='home'
+            if  (((source=="IR") and (key==516) ) or ((source=="clavier") and (key=='3'))):
+                action='logout'
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                action='scroll'
+            if ( (source=="IR") and (key==520)) :
+                action='square'
+            if ( (source=="IR") and (key==518) ) :
+                action='vol+'
+            if ( (source=="IR") and (key==517) ) :
+                action='vol-'
+            if ( ((source=="IR") and (key==512)) or ((source=="clavier") and (key=='5')) ) :
+                action='play'
+            if ( ((source=="IR") and (key==513))or ((source=="clavier") and (key=='2')) ):
+                action='arrow-'
+            if ( ((source=="IR") and (key==514))or ((source=="clavier") and (key=='8')) ):
+                action='arrow+'
+            if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                action='select'
+            if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
+                action='back'
+            if ( (source=="clavier") and (key=='1') ) :
+                action='prev'
+            if ( (source=="clavier") and (key=='7') ) :
+                action='next'
                 
-            if  (action=='logout' ):
-                save=True
-                STATE=100
+        if protocole=='keyes':
+            action=''
+            if ( ((source=="IR") and (key==74)) or ((source=="clavier") and (key=='6')) ) :
+                action='home'
+            if  (((source=="IR") and (key==82) ) or ((source=="clavier") and (key=='3'))):
+                action='logout'
+            if ((source=="rotary") and (ROTARY_param[4]==-1)):
+                action='scroll'
+            if ( (source=="IR") and (key==8)) :
+                action='square'
+            if ( (source=="IR") and (key==70) ) :
+                action='vol+'
+            if ( (source=="IR") and (key==21) ) :
+                action='vol-'
+            if ( ((source=="IR") and (key==28)) or ((source=="clavier") and (key=='5')) ) :
+                action='play'
+            if ( ((source=="IR") and (key==67))or ((source=="clavier") and (key=='2')) ):
+                action='arrow-'
+            if ( ((source=="IR") and (key==68))or ((source=="clavier") and (key=='8')) ):
+                action='arrow+'
+            if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+                action='select'
+            if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
+                action='back'
+            if ( (source=="clavier") and (key=='1') ) :
+                action='prev'
+            if ( (source=="clavier") and (key=='7') ) :
+                action='next'
                 
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    volume=min(volume+1,200)
-                if key<last_rotary_position:
-                    volume=max(volume-1,0)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                last_rotary_position=ROTARY_param[3]
-                
-            if ( action=='vol+' ):
-                volume=min(volume+5,200)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                
-            if ( action=='vol-' ):
-                volume=max(volume-5,0)
-                sound_box(volume)
-                player.audio_set_volume(volume)
- 
-            if (action=='play'):
-                if not(player.is_playing()):
-                    player.play()
-                else:
-                    player.pause()                   
-                
-     case 1:#menus principaux
-            if update==True:
-               init_menu(ST1_param,ST1_menu)           
-   
-            if ( action=='arrow-' ) :
-                ST1_param[3]=ST1_param[3]+1
-                if ST1_param[3]>len(ST1_menu)-1:
-                    ST1_param[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST1_param[3]=ST1_param[3]-1
-                if ST1_param[3]<0:
-                    ST1_param[3]=len(ST1_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                print('scroll')
-                if key>last_rotary_position:
-                    ST1_param[3]=ST1_param[3]+1
-                if key<last_rotary_position:
-                    ST1_param[3]=ST1_param[3]-1
-                if ST1_param[3]>len(ST1_menu)-1:
-                    ST1_param[3]=0
-                if ST1_param[3]<0:
-                    ST1_param[3]=len(ST1_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-                    
-            if (ST1_param[3]==0 and (action=='select')) :
-                update=True
-                STATE=2         #web radio
-                
-            if (ST1_param[3]==1 and (action=='select')) :
-                update=True
-                STATE=3         #alarm
-                
-            if (ST1_param[3]==2 and (action=='select')) :
-                update=True
-                STATE=5         #wifi                              
-                
-            if (ST1_param[3]==3 and (action=='select')) :
-                update=True
-                STATE=4         #USB
-                
-            if (ST1_param[3]==4 and (action=='select')) :
-                update=True
-                STATE=6         #IP
- 
-            if (ST1_param[3]==5 and (action=='select')) :
-                update=True
-                STATE=7         #METEO
- 
-            if (action=='back') : 
-                STATE=0
-                            
-            if (action=='home') : 
-                STATE=0   
-                               
-            if  (action=='logout' ):
-                save=True
-                STATE=100
-  
-     case 2:#menus web radios
-            if update:
-                init_menu(ST2_param,ST2_menu)
-
-            if ( action=='arrow-' ) :
-                ST2_param[3]=ST2_param[3]+1
-                if ST2_param[3]>len(ST2_menu)-1:
-                    ST2_param[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST2_param[3]=ST2_param[3]-1
-                if ST2_param[3]<0:
-                    ST2_param[3]=len(ST2_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST2_param[3]=ST2_param[3]+1
-                if key<last_rotary_position:
-                    ST2_param[3]=ST2_param[3]-1
-                if ST2_param[3]>len(ST2_menu)-1:
-                    ST2_param[3]=0
-                if ST2_param[3]<0:
-                    ST2_param[3]=len(ST2_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if (action=='select' ) :
-                url=liste_url[ST2_param[3]]
-                player.set_mrl(url)
-                channel_ini=ST2_param[3]
+        now=datetime.now()
+        
+        if ((alarm_set==1) and (jours_actifs[now.weekday()]==True) and (now.hour==alarm_clck_hour) and (now.minute==alarm_clck_min) and (now.second<20) ):
+            alarm_src=alarm_source
+            for i in range (0,int(nb)):        
+                if (alarm_source==liste_url[i]):
+                    is_connected=is_connected_to(ssid)
+                    if not(is_connected):
+                        alarm_src='composition Theodor.mp3'   
+                        player.set_mrl(alarm_src)                    
+            if not(player.is_playing()):
                 player.play()
-                
-            if ( action=='vol+') :
-                volume=min(volume+5,200)
-                sound_box(volume)
                 player.audio_set_volume(volume)
-                update=True
-                
-            if ( action=='vol-') :
-                volume=max(volume-5,0)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                update=True
-                
-            if (action=='back') : 
-                STATE=1            
-                update=True
-                
-            if (action=='home')  : 
-                STATE=0   
+                STATE=0
 
-            if (action=='logout'):
-                save=True
-                STATE=100
-  
-     case 3:#menus settings alarme
-            if update:
-                init_menu(ST3_param,ST3_menu)
-
-            if ( action=='arrow-' ) :
-                ST3_param[3]=ST3_param[3]+1
-                if ST3_param[3]>len(ST3_menu)-1:
-                    ST3_param[3]=0
-                update=True
-            if ( action=='arrow+') :
-                ST3_param[3]=ST3_param[3]-1
-                if ST3_param[3]<0:
-                    ST3_param[3]=len(ST3_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST3_param[3]=ST3_param[3]+1
-                if key<last_rotary_position:
-                    ST3_param[3]=ST3_param[3]-1
-                if ST3_param[3]>len(ST3_menu)-1:
-                    ST3_param[3]=0
-                if ST3_param[3]<0:
-                    ST3_param[3]=len(ST3_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if (ST3_param[3]==0 and (action=='select') ) :
-                update=True
-                STATE=30
-                
-            if (ST3_param[3]==1 and (action=='select') ) :
-                update=True
-                digit_sel=0
-                STATE=31     
-                
-            if (ST3_param[3]==2 and (action=='select' )) :
-               update=True
-               STATE=32
-                
-            if (ST3_param[3]==3 and (action=='select')) :
-                update=True
-                STATE=33
-
-            if (ST3_param[3]==4 and (action=='select')) :
-                update=True
-                STATE=34
-                
-            if (action=='back' ) : 
-                update=True
-                STATE=1 
-                
-            if  (action=='logout') :
-                save=True
-                STATE=100
-
-            if ( action=='home')  : 
-                STATE=0   
-
-     case 30:#menus activation alarme
-        if update:
-            draw=ImageDraw.Draw(image_blanche)
-            draw.rectangle((0, 0, width, height), outline=0, fill=0)
-            if alarm_set==1:
-                draw.text((10,30),"ALARME ACTIVE",font=font4,size=1,fill=1)
-            else:            
-                draw.text((10,30),"ALARME DESACTIVEE",font=font4,size=1,fill=1)
-            oled.image(image_blanche)
-            oled.show()
-            update=False  
-            
-        if (action=='back' ) :            
-            update=True
-            last_rotary_position=ROTARY_param[3]
-            STATE=3               
-            
-        if (action=='select') :
-            if alarm_set==1:
-                alarm_set=0 
-            else:
-                alarm_set=1
-            update=True
-            
-        if  (action=='logout'):
-                save=True
-                STATE=100
-
-        if (action=='home')  : 
-            STATE=0   
-            
-     case 31:#menus reglage alarme
-        if update:
-            h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
-            set_hour(h)
-            
-        if (action=='back') :            
-            update=True
-            last_rotary_position=ROTARY_param[3]
-            STATE=3       
-            
-        if (action=='select' ) :
-            digit_sel=(digit_sel+1)%4
-            update=True
-            
-        if (( action=='arrow+' ) or ( action=='arrow++' )):
-            match digit_sel:
-             case 0:
-                alarm_clck_hour=min(alarm_clck_hour+10,23)
-             case 1:
-                alarm_clck_hour=min(alarm_clck_hour+1,23)
-             case 2:
-                alarm_clck_min=min(alarm_clck_min+10,59)
-             case 3:
-                alarm_clck_min=min(alarm_clck_min+1,59)
-            update=True
-            
-        if (( action=='arrow-' ) or ( action=='arrow--' )):
-            match digit_sel:
-             case 0:
-                alarm_clck_hour=max(alarm_clck_hour-10,0)
-             case 1:
-                alarm_clck_hour=max(alarm_clck_hour-1,0)
-             case 2:
-                alarm_clck_min=max(alarm_clck_min-10,0)
-             case 3:
-                alarm_clck_min=max(alarm_clck_min-1,0)                
-            update=True      
-                        
-        if  (action=='logout' ):
-                save=True
-                STATE=100
- 
-        if ( action=='home' )  : 
-            STATE=0   
- 
-     case 32:#menus selection source alarme
-            if update:
-                init_menu(ST2_param,ST2_menu)
-
-            if ( action=='arrow-' ) :
-                ST2_param[3]=ST2_param[3]+1
-                if ST2_param[3]>len(ST2_menu)-1:
-                    ST2_param[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST2_param[3]=ST2_param[3]-1
-                if ST2_param[3]<0:
-                    ST2_param[3]=len(ST2_menu)-1
-                update=True                
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST2_param[3]=ST2_param[3]+1
-                if key<last_rotary_position:
-                    ST2_param[3]=ST2_param[3]-1
-                if ST2_param[3]>len(ST2_menu)-1:
-                    ST2_param[3]=0
-                if ST2_param[3]<0:
-                    ST2_param[3]=len(ST2_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if ( action=='select' ) :
-                alarm_source=liste_url[ST2_param[3]]
-
-            if (action=='back') : 
-                update=True
-                STATE=3            
-
-            if  (action=='logout'):
-                save=True
-                STATE=100
-                
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 33:#menus selection melodie
-            if update:
-                init_menu(ST_melodies,liste_melodies)
-
-            if ( action=='arrow-' ) :
-                ST_melodies[3]=ST_melodies[3]+1
-                if ST_melodies[3]>len(liste_melodies)-1:
-                    ST_melodies[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST_melodies[3]=ST_melodies[3]-1
-                if ST_melodies[3]<0:
-                    ST_melodies[3]=len(liste_melodies)-1
-                update=True                
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST_melodies[3]=ST_melodies[3]+1
-                if key<last_rotary_position:
-                    ST_melodies[3]=ST_melodies[3]-1
-                if ST_melodies[3]>len(liste_melodies)-1:
-                    ST_melodies[3]=0
-                if ST_melodies[3]<0:
-                    ST_melodies[3]=len(liste_melodies)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if ( action=='select' ) :
-                alarm_source=liste_melodies[ST_melodies[3]]
-
-            if (action=='back') : 
-                update=True
-                STATE=3            
-
-            if  (action=='logout'):
-                save=True
-                STATE=100
-                
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 34:#menus selection jours de la semaine
-            if update:
-                update_alarm_days(ST7_param,jours_actifs)
-
-            if ( action=='arrow-' ) :
-                ST7_param[3]=ST7_param[3]+1
-                if ST7_param[3]>len(jours_actifs)-1:
-                    ST7_param[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST7_param[3]=ST7_param[3]-1
-                if ST7_param[3]<0:
-                    ST7_param[3]=len(jours_actifs)-1
-                update=True                
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST7_param[3]=ST7_param[3]+1
-                if key<last_rotary_position:
-                    ST7_param[3]=ST7_param[3]-1
-                if ST7_param[3]>len(jours_actifs)-1:
-                    ST7_param[3]=0
-                if ST7_param[3]<0:
-                    ST7_param[3]=len(jours_actifs)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if ( action=='select' ) :
-                if (jours_actifs[ST7_param[3]]):
-                    jours_actifs[ST7_param[3]]=False
-                else:
-                    jours_actifs[ST7_param[3]]=True
-                update=True
-
-            if (action=='back') : 
-                update=True
-                STATE=3            
-
-            if  (action=='logout'):
-                save=True
-                STATE=100
-                
-            if ( action=='home' )  : 
-                STATE=0   
-                
-     case 4:#menu USB
-            if update:
-                init_menu(ST4_param,ST4_menu)
-
-            if ( action=='arrow-' ) :
-                ST4_param[3]=ST4_param[3]+1
-                if ST4_param[3]>len(ST4_menu)-1:
-                    ST4_param[3]=0
-                update=True
-            if ( action=='arrow+' ) :
-                ST4_param[3]=ST4_param[3]-1
-                if ST4_param[3]<0:
-                    ST4_param[3]=len(ST4_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST4_param[3]=ST4_param[3]+1
-                if key<last_rotary_position:
-                    ST4_param[3]=ST4_param[3]-1
-                if ST4_param[3]>len(ST4_menu)-1:
-                    ST4_param[3]=0
-                if ST4_param[3]<0:
-                    ST4_param[3]=len(ST4_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if (ST4_param[3]==0 and (action=='select')) :
-                update=True
-                update_usb=True
-                STATE=41
-                
-            if (ST4_param[3]==1 and (action=='select')) :
-                update=True
-                rep=[0,0]
-                STATE=42     
-
-            if (ST4_param[3]==2 and (action=='select')) :
-                update=True
-                rep=[0,0]
-                STATE=43     
-
-            if (ST4_param[3]==3 and (action=='select')) :
-                update=True
-                rep=[0,0]
-                STATE=44   
-                
-            if (action=='back') : 
-                update=True
-                STATE=1 
-                
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 41:#menu USB Medias
-            if update_usb:
-                s=scan_USB_files()
-                ST41_menu=[]
-                for i in range(0,len(mp3_files)):
-                    ST41_menu.append(mp3_files[i].name)
-            if update:
-                init_menu(ST41_param,ST41_menu)
-
-            if ( action=='arrow-' ) :
-                ST41_param[3]=ST41_param[3]+1
-                if ST41_param[3]>len(ST41_menu)-1:
-                    ST41_param[3]=0
-                update=True
-            if ( action=='arrow+' ) :
-                ST41_param[3]=ST41_param[3]-1
-                if ST41_param[3]<0:
-                    ST41_param[3]=len(ST41_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST41_param[3]=ST41_param[3]+1
-                if key<last_rotary_position:
-                    ST41_param[3]=ST41_param[3]-1
-                if ST41_param[3]>len(ST41_menu)-1:
-                    ST41_param[3]=0
-                if ST41_param[3]<0:
-                    ST41_param[3]=len(ST41_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-
-            if  (action=='select') :
-                if (len(mp3_files)>ST41_param[3]):
-                    url=mp3_files[ST41_param[3]]
-                    player.set_mrl(url)
-                    player.play()
-                
-            if (action=='back') : 
-                update_usb=True
-                update=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=1 
-                
-            if  (action=='logout'):
-                update_usb=True
-                save=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=100
-
-            if ( action=='home' )  : 
-                update_usb=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=0   
-
-     case 42:#menu USB MAJ SYSTEME
-            if update:
-                will_you_load(rep)
-
-            if ( action=='arrow-' ) :
-                update=True
-                rep[0]=(rep[0]+1)%2
-                will_you_load(rep)
-
-            if ( action=='arrow+' ) :
-                update=True
-                rep[0]=(rep[0]-1)%2
-                will_you_load(rep)
-               
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    rep[0]=(rep[0]+1)%2
-                if key<last_rotary_position:
-                    rep[0]=(rep[0]-1)%2
-                update=True
-                last_rotary_position=ROTARY_param[3]
-                will_you_load(rep)
-
-            if  (action=='select') :
-                update=True
-                if rep[0]==0:
-                    err=load_config("bbdradio.py")
-                    if (err==1):
-                        rep[1]=1
-                        will_you_load(rep)
+        match STATE:
+         case 0:#ecran d'accueil                
+                now=datetime.now()
+                deltat=now-lastnow
+                if (deltat.microseconds>950000):
+                    update_count=(update_count+1)%30  
+                    #teste le signal wifi toutes les 30 s
+                    if (update_count==1):
+                        scan=get_wifi_snr()
+                    if (scan[0]==ssid):
+                        draw=ImageDraw.Draw(image_bw_connected)
+                        draw.text((115,42),snr,font=font100,size=1,fill=0)
+                        snr=scan[1]
+                        draw.text((115,42),snr,font=font100,size=1,fill=1)
                     else:
-                        rep[1]=2
-                        will_you_load(rep)
-                else:
-                    STATE=1
- 
-            if (action=='back') : 
-                update_usb=True
-                update=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=1 
- 
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 43:#menu USB MAJ CONFIG
-            if update:
-                will_you_load(rep)
-
-            if ( action=='arrow-' ) :
-                update=True
-                rep[0]=(rep[0]+1)%2
-                will_you_load(rep)
-
-            if ( action=='arrow+' ) :
-                update=True
-                rep[0]=(rep[0]-1)%2
-                will_you_load(rep)
-               
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    rep[0]=(rep[0]+1)%2
-                if key<last_rotary_position:
-                    rep[0]=(rep[0]-1)%2
-                update=True
-                last_rotary_position=ROTARY_param[3]
-                will_you_load(rep)
-
-            if  (action=='select') :
-                update=True
-                if rep[0]==0:
-                    err=load_config("data.ini")
-                    if (err==1):
-                        rep[1]=1
-                        will_you_load(rep)
+                        draw=ImageDraw.Draw(image_bw)
+                    draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
+                    draw.text((32,45),date_var[0],font=font2,size=1,fill=0)  
+                    set_time(0)
+                    draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
+                    draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
+                    if (scan[0]==ssid):
+                        oled.image(image_bw_connected)
                     else:
-                        rep[1]=2
-                        will_you_load(rep)
-                else:
+                        oled.image(image_bw)
+                    oled.show()
+                    lastnow=now            
+                
+                if  (action=='select'):
+                    update=True                
                     STATE=1
- 
-            if (action=='back') : 
-                update_usb=True
-                update=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=1 
- 
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 44:#menu USB SAUVEGARDE
-            if update:
-                will_you_save(rep)
-
-            if ( action=='arrow-' ) :
-                update=True
-                rep[0]=(rep[0]+1)%2
-                will_you_save(rep)
-
-            if ( action=='arrow+' ) :
-                update=True
-                rep[0]=(rep[0]-1)%2
-                will_you_save(rep)
-               
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    rep[0]=(rep[0]+1)%2
-                if key<last_rotary_position:
-                    rep[0]=(rep[0]-1)%2
-                update=True
-                last_rotary_position=ROTARY_param[3]
-                will_you_save(rep)
-
-            if  (action=='select') :
-                update=True
-                if rep[0]==0:
-                    err1=save_config("data.ini")
-                    err2=save_config("bbdradio.py")
-                    if (err1==1) and (err2==1):
-                        rep[1]=1
-                        will_you_save(rep)
+                    
+                if  (action=='logout' ):
+                    save=True
+                    STATE=100
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        volume=min(volume+1,200)
+                    if key<last_rotary_position:
+                        volume=max(volume-1,0)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    last_rotary_position=ROTARY_param[3]
+                    
+                if ( action=='vol+' ):
+                    volume=min(volume+5,200)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    
+                if ( action=='vol-' ):
+                    volume=max(volume-5,0)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+     
+                if (action=='play'):
+                    if not(player.is_playing()):
+                        player.play()
                     else:
-                        rep[1]=2
-                        will_you_save(rep)
-                else:
-                    STATE=1
- 
-            if (action=='back') : 
-                update_usb=True
-                update=True
-                subprocess.run(["sudo", "umount", mount_path])
-                STATE=1 
- 
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 5:#menu wifi
-            if update:
-                s=scan_wifi()
-                ST5_menu=[]
-                for i in range(0,len(s)):
-                    w=s[i].split(":")
-                    ST5_menu.append(w[0])
-                init_menu(ST5_param,ST5_menu)
-
-            if ( action=='arrow-' ) :
-                ST5_param[3]=ST5_param[3]+1
-                if ST5_param[3]>len(ST5_menu)-1:
-                    ST5_param[3]=0
-                               
-            if ( action=='arrow+' ) :
-                ST5_param[3]=ST5_param[3]-1
-                if ST5_param[3]<0:
-                    ST5_param[3]=len(ST5_menu)-1                               
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST5_param[3]=ST5_param[3]+1
-                if key<last_rotary_position:
-                    ST5_param[3]=ST5_param[3]-1
-                if ST5_param[3]>len(ST5_menu)-1:
-                    ST5_param[3]=0
-                if ST5_param[3]<0:
-                    ST5_param[3]=len(ST5_menu)-1
-                last_rotary_position=ROTARY_param[3]                             
-
-            if  (action=='select') :
-                update=True
-                pwd=passwd
-                ssid=ST5_menu[ST3_param[3]]
-                STATE=50                
-                
-            if (action=='back') : 
-                update=True
-                STATE=1 
-                
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0   
-
-     case 50:#menu wifi passwd
-        if update:
-           set_passwd(pwd)
-            
-        if (action=='back') :            
-            update=True
-            last_rotary_position=ROTARY_param[3]
-            STATE=5       
-                                 
-        if ( action=='arrow++' ) : #touche UP
-            pwd=pwd+"-"
-            update=True
-            
-        if ( action=='arrow--' ) : #touche DOWN
-            pwd=pwd[:-1]  
-            update=True
-                        
-        if (action=='scroll'):
-            if len(pwd)>0:
-                if key>last_rotary_position:
-                    r=ord(pwd[len(pwd)-1])+1
-                if key<last_rotary_position:
-                    r=ord(pwd[len(pwd)-1])-1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                pwd=pwd[:len(pwd)-1]+chr(r)
-                last_rotary_position=ROTARY_param[3]
-                update=True
-                
-        if (action=='arrow+') : 
-            if len(pwd)>0:
-                r=ord(pwd[len(pwd)-1])+1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                pwd=pwd[:len(pwd)-1]+chr(r)
-                update=True
-            
-        if (action=='arrow-') : 
-            if len(pwd)>0:
-                r=ord(pwd[len(pwd)-1])-1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                pwd=pwd[:len(pwd)-1]+chr(r)
-                update=True
-            
-        if ( action=='play' ) :
-            passwd=pwd
-            res=connect_to(ssid,passwd)
-            if (res):
-                s="connecté à : "+ssid
-                draw_msg(s)
-            else:
-                s="echec connection"
-                draw_msg(s)
-                
-        if  (action=='logout'):
-                save=True
-                STATE=100
- 
-        if ( action=='home' )  : 
-            STATE=0   
- 
-     case 6:#menu IP
-            if update:
-              try:
-                os.system('sh get_ip.sh')
-                f=open("ip.txt")
-                ip=f.readline().strip('\n')
-                ST6_menu=[]
-                ST6_menu.append(ip)
-                init_menu(ST6_param,ST6_menu)
-              except:
-                print('error')
-                STATE=1   
-                 
-            if (action=='back') : 
-                update=True
-                STATE=1 
-                
-            if  (action=='logout'):
-                save=True
-                STATE=100
-
-            if ( action=='home' )  : 
-                STATE=0 
-                
-     case 7:#menus METEO
-            if update:
-                init_menu(ST8_param,ST8_menu)
-
-            if ( action=='arrow-' ) :
-                ST8_param[3]=ST8_param[3]+1
-                if ST8_param[3]>len(ST8_menu)-1:
-                    ST8_param[3]=0
-                update=True
-                
-            if ( action=='arrow+' ) :
-                ST8_param[3]=ST8_param[3]-1
-                if ST8_param[3]<0:
-                    ST8_param[3]=len(ST8_menu)-1
-                update=True
-                
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    ST8_param[3]=ST8_param[3]+1
-                if key<last_rotary_position:
-                    ST8_param[3]=ST8_param[3]-1
-                if ST8_param[3]>len(ST8_menu)-1:
-                    ST8_param[3]=0
-                if ST8_param[3]<0:
-                    ST8_param[3]=len(ST8_menu)-1
-                last_rotary_position=ROTARY_param[3]
-                update=True
-                
-            if (ST8_param[3]==0 and (action=='select')) :
-                update=True
-                meteo_loc=meteo_location
-                STATE=71         #METEO change Location
-
-            if (ST8_param[3]==1 and (action=='select')) :
-                update=True
-                meteo_prev_id=0
-                STATE=72         #METEO previsions
-                
-            if ( action=='vol+') :
-                volume=min(volume+5,200)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                update=True
-                
-            if ( action=='vol-') :
-                volume=max(volume-5,0)
-                sound_box(volume)
-                player.audio_set_volume(volume)
-                update=True
-                
-            if (action=='back') : 
-                STATE=1            
-                update=True
-                
-            if (action=='home')  : 
-                STATE=0   
-
-            if (action=='logout'):
-                save=True
-                STATE=100
-
-     case 71:#menu METEO change location
-        if update:
-           set_passwd(meteo_loc)
-            
-        if (action=='back') :            
-            update=True
-            last_rotary_position=ROTARY_param[3]
-            STATE=7       
-                                 
-        if ( action=='arrow+' ) : #touche UP
-            meteo_loc=meteo_loc+"-"
-            update=True
-            
-        if ( action=='arrow-' ) : #touche DOWN
-            meteo_loc=meteo_loc[:-1]  
-            update=True
-                        
-        if (action=='scroll'):
-            if len(meteo_loc)>0:
-                if key>last_rotary_position:
-                    r=ord(meteo_loc[len(meteo_loc)-1])+1
-                if key<last_rotary_position:
-                    r=ord(meteo_loc[len(meteo_loc)-1])-1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
-                last_rotary_position=ROTARY_param[3]
-                update=True
-                
-        if (action=='arrow++') : 
-            if len(meteo_loc)>0:
-                r=ord(meteo_loc[len(meteo_loc)-1])+1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
-                update=True
-            
-        if (action=='arrow--') : 
-            if len(meteo_loc)>0:
-                r=ord(meteo_loc[len(meteo_loc)-1])-1
-                if r>126:
-                    r=32
-                else:
-                    if r<32:
-                        r=126
-                meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
-                update=True
-            
-        if ( action=='play' ) :
-            meteo_location=meteo_loc
-                
-        if  (action=='logout'):
-                save=True
-                STATE=100
- 
-        if ( action=='home' )  : 
-            STATE=0   
-
-     case 72:#menu METEO previsions
-            if update:
-              try:
-                h=get_meteo()
-                hourly_temperature_2m = h.Variables(0).ValuesAsNumpy()
-                hourly_precipitation = h.Variables(1).ValuesAsNumpy()
-                hourly_precipitation_probability = h.Variables(2).ValuesAsNumpy()
-                hourly_weather_code = h.Variables(3).ValuesAsNumpy()
-                hourly_wind_speed_10m = h.Variables(4).ValuesAsNumpy()
-                hourly_rain = h.Variables(5).ValuesAsNumpy()
-                err=True
-                display_meteo_prev(meteo_prev_id,err)
-              except:
-                 err=False
-                 display_meteo_prev(meteo_prev_id,err)  
-              update=False 
-              
-            if ( action=='arrow-' ) :
-                    meteo_prev_id=meteo_prev_id-1
-                    if meteo_prev_id==-1:
-                        meteo_prev_id=167                     
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                    display_meteo_prev(meteo_prev_id,err)
-                    update=True
-
-            if ( action=='arrow+' ) :
-                    meteo_prev_id=meteo_prev_id+1
-                    if meteo_prev_id==167:
-                        meteo_prev_id=0                    
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                    display_meteo_prev(meteo_prev_id,err)
-                    update=True
-                
-            if ( action=='arrow--' ) :
-                    meteo_prev_id=meteo_prev_id-12
-                    if meteo_prev_id==-1:
-                        meteo_prev_id=167                     
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                    display_meteo_prev(meteo_prev_id,err)
+                        player.pause()                   
+                    
+         case 1:#menus principaux
+                if update==True:
+                   init_menu(ST1_param,ST1_menu)           
+       
+                if ( action=='arrow-' ) :
+                    ST1_param[3]=ST1_param[3]+1
+                    if ST1_param[3]>len(ST1_menu)-1:
+                        ST1_param[3]=0
                     update=True
                     
-            if ( action=='arrow++' ) :
-                    meteo_prev_id=meteo_prev_id+12
-                    if meteo_prev_id==167:
-                        meteo_prev_id=0                    
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                    display_meteo_prev(meteo_prev_id,err)
+                if ( action=='arrow+' ) :
+                    ST1_param[3]=ST1_param[3]-1
+                    if ST1_param[3]<0:
+                        ST1_param[3]=len(ST1_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    print('scroll')
+                    if key>last_rotary_position:
+                        ST1_param[3]=ST1_param[3]+1
+                    if key<last_rotary_position:
+                        ST1_param[3]=ST1_param[3]-1
+                    if ST1_param[3]>len(ST1_menu)-1:
+                        ST1_param[3]=0
+                    if ST1_param[3]<0:
+                        ST1_param[3]=len(ST1_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+                        
+                if (ST1_param[3]==0 and (action=='select')) :
+                    update=True
+                    STATE=2         #web radio
+                    
+                if (ST1_param[3]==1 and (action=='select')) :
+                    update=True
+                    STATE=3         #alarm
+                    
+                if (ST1_param[3]==2 and (action=='select')) :
+                    update=True
+                    STATE=5         #wifi                              
+                    
+                if (ST1_param[3]==3 and (action=='select')) :
+                    update=True
+                    STATE=4         #USB
+                    
+                if (ST1_param[3]==4 and (action=='select')) :
+                    update=True
+                    STATE=6         #IP
+     
+                if (ST1_param[3]==5 and (action=='select')) :
+                    update=True
+                    STATE=7         #METEO
+     
+                if (action=='back') : 
+                    STATE=0
+                                
+                if (action=='home') : 
+                    STATE=0   
+                                   
+                if  (action=='logout' ):
+                    save=True
+                    STATE=100
+      
+         case 2:#menus web radios
+                if update:
+                    init_menu(ST2_param,ST2_menu)
+
+                if ( action=='arrow-' ) :
+                    ST2_param[3]=ST2_param[3]+1
+                    if ST2_param[3]>len(ST2_menu)-1:
+                        ST2_param[3]=0
+                    update=True
+                    
+                if ( action=='arrow+' ) :
+                    ST2_param[3]=ST2_param[3]-1
+                    if ST2_param[3]<0:
+                        ST2_param[3]=len(ST2_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST2_param[3]=ST2_param[3]+1
+                    if key<last_rotary_position:
+                        ST2_param[3]=ST2_param[3]-1
+                    if ST2_param[3]>len(ST2_menu)-1:
+                        ST2_param[3]=0
+                    if ST2_param[3]<0:
+                        ST2_param[3]=len(ST2_menu)-1
+                    last_rotary_position=ROTARY_param[3]
                     update=True
 
-            if (action=='scroll'):
-                if key>last_rotary_position:
-                    meteo_prev_id=meteo_prev_id+1
-                    if meteo_prev_id==167:
-                        meteo_prev_id=0                    
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                if key<last_rotary_position:
-                    meteo_prev_id=meteo_prev_id-1
-                    if meteo_prev_id==-1:
-                        meteo_prev_id=167                     
-                    meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
-                last_rotary_position=ROTARY_param[3]
-                display_meteo_prev(meteo_prev_id,err)
-                update=True
+                if (action=='select' ) :
+                    url=liste_url[ST2_param[3]]
+                    player.set_mrl(url)
+                    channel_ini=ST2_param[3]
+                    player.play()
+                    
+                if ( action=='vol+') :
+                    volume=min(volume+5,200)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    update=True
+                    
+                if ( action=='vol-') :
+                    volume=max(volume-5,0)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    update=True
+                    
+                if (action=='back') : 
+                    STATE=1            
+                    update=True
+                    
+                if (action=='home')  : 
+                    STATE=0   
 
-            if (action=='back') : 
-                update=True
-                STATE=7 
-                
-            if  (action=='logout'):
-                save=True
-                STATE=100
+                if (action=='logout'):
+                    save=True
+                    STATE=100
+      
+         case 3:#menus settings alarme
+                if update:
+                    init_menu(ST3_param,ST3_menu)
 
-            if ( action=='home' )  : 
-                STATE=0 
-                                
-     case 100:#écran de veille
-            if save:
-                save_params()
-                save=False
-            now=datetime.now()
-            deltat=now-lastnow
-            if (deltat.microseconds>950000):         
-                if player.is_playing():
-                    player.stop()
+                if ( action=='arrow-' ) :
+                    ST3_param[3]=ST3_param[3]+1
+                    if ST3_param[3]>len(ST3_menu)-1:
+                        ST3_param[3]=0
+                    update=True
+                if ( action=='arrow+') :
+                    ST3_param[3]=ST3_param[3]-1
+                    if ST3_param[3]<0:
+                        ST3_param[3]=len(ST3_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST3_param[3]=ST3_param[3]+1
+                    if key<last_rotary_position:
+                        ST3_param[3]=ST3_param[3]-1
+                    if ST3_param[3]>len(ST3_menu)-1:
+                        ST3_param[3]=0
+                    if ST3_param[3]<0:
+                        ST3_param[3]=len(ST3_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if (ST3_param[3]==0 and (action=='select') ) :
+                    update=True
+                    STATE=30
+                    
+                if (ST3_param[3]==1 and (action=='select') ) :
+                    update=True
+                    digit_sel=0
+                    STATE=31     
+                    
+                if (ST3_param[3]==2 and (action=='select' )) :
+                   update=True
+                   STATE=32
+                    
+                if (ST3_param[3]==3 and (action=='select')) :
+                    update=True
+                    STATE=33
+
+                if (ST3_param[3]==4 and (action=='select')) :
+                    update=True
+                    STATE=34
+                    
+                if (action=='back' ) : 
+                    update=True
+                    STATE=1 
+                    
+                if  (action=='logout') :
+                    save=True
+                    STATE=100
+
+                if ( action=='home')  : 
+                    STATE=0   
+
+         case 30:#menus activation alarme
+            if update:
                 draw=ImageDraw.Draw(image_blanche)
                 draw.rectangle((0, 0, width, height), outline=0, fill=0)
-                draw.text((50,2),time_var[1],font=font100,size=1,fill=0)  
-                draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
-                set_time(1)
-                draw.text((50,2),time_var[1],font=font100,size=1,fill=1)  
-                draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
-                oled.image(image_blanche)               
+                if alarm_set==1:
+                    draw.text((10,30),"ALARME ACTIVE",font=font4,size=1,fill=1)
+                else:            
+                    draw.text((10,30),"ALARME DESACTIVEE",font=font4,size=1,fill=1)
+                oled.image(image_blanche)
                 oled.show()
-                lastnow=now
-            if (action=='logout' ):
-                STATE=0
- 
-except KeyboardInterrupt:
-    print("fin")
+                update=False  
+                
+            if (action=='back' ) :            
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                STATE=3               
+                
+            if (action=='select') :
+                if alarm_set==1:
+                    alarm_set=0 
+                else:
+                    alarm_set=1
+                update=True
+                
+            if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+            if (action=='home')  : 
+                STATE=0   
+                
+         case 31:#menus reglage alarme
+            if update:
+                h=[alarm_clck_hour//10,alarm_clck_hour%10,alarm_clck_min//10,alarm_clck_min%10,digit_sel]
+                set_hour(h)
+                
+            if (action=='back') :            
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                STATE=3       
+                
+            if (action=='select' ) :
+                digit_sel=(digit_sel+1)%4
+                update=True
+                
+            if (( action=='arrow+' ) or ( action=='arrow++' )):
+                match digit_sel:
+                 case 0:
+                    alarm_clck_hour=min(alarm_clck_hour+10,23)
+                 case 1:
+                    alarm_clck_hour=min(alarm_clck_hour+1,23)
+                 case 2:
+                    alarm_clck_min=min(alarm_clck_min+10,59)
+                 case 3:
+                    alarm_clck_min=min(alarm_clck_min+1,59)
+                update=True
+                
+            if (( action=='arrow-' ) or ( action=='arrow--' )):
+                match digit_sel:
+                 case 0:
+                    alarm_clck_hour=max(alarm_clck_hour-10,0)
+                 case 1:
+                    alarm_clck_hour=max(alarm_clck_hour-1,0)
+                 case 2:
+                    alarm_clck_min=max(alarm_clck_min-10,0)
+                 case 3:
+                    alarm_clck_min=max(alarm_clck_min-1,0)                
+                update=True      
+                            
+            if  (action=='logout' ):
+                    save=True
+                    STATE=100
+     
+            if ( action=='home' )  : 
+                STATE=0   
+     
+         case 32:#menus selection source alarme
+                if update:
+                    init_menu(ST2_param,ST2_menu)
+
+                if ( action=='arrow-' ) :
+                    ST2_param[3]=ST2_param[3]+1
+                    if ST2_param[3]>len(ST2_menu)-1:
+                        ST2_param[3]=0
+                    update=True
+                    
+                if ( action=='arrow+' ) :
+                    ST2_param[3]=ST2_param[3]-1
+                    if ST2_param[3]<0:
+                        ST2_param[3]=len(ST2_menu)-1
+                    update=True                
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST2_param[3]=ST2_param[3]+1
+                    if key<last_rotary_position:
+                        ST2_param[3]=ST2_param[3]-1
+                    if ST2_param[3]>len(ST2_menu)-1:
+                        ST2_param[3]=0
+                    if ST2_param[3]<0:
+                        ST2_param[3]=len(ST2_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if ( action=='select' ) :
+                    alarm_source=liste_url[ST2_param[3]]
+
+                if (action=='back') : 
+                    update=True
+                    STATE=3            
+
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+                    
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 33:#menus selection melodie
+                if update:
+                    init_menu(ST_melodies,liste_melodies)
+
+                if ( action=='arrow-' ) :
+                    ST_melodies[3]=ST_melodies[3]+1
+                    if ST_melodies[3]>len(liste_melodies)-1:
+                        ST_melodies[3]=0
+                    update=True
+                    
+                if ( action=='arrow+' ) :
+                    ST_melodies[3]=ST_melodies[3]-1
+                    if ST_melodies[3]<0:
+                        ST_melodies[3]=len(liste_melodies)-1
+                    update=True                
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST_melodies[3]=ST_melodies[3]+1
+                    if key<last_rotary_position:
+                        ST_melodies[3]=ST_melodies[3]-1
+                    if ST_melodies[3]>len(liste_melodies)-1:
+                        ST_melodies[3]=0
+                    if ST_melodies[3]<0:
+                        ST_melodies[3]=len(liste_melodies)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if ( action=='select' ) :
+                    alarm_source=liste_melodies[ST_melodies[3]]
+
+                if (action=='back') : 
+                    update=True
+                    STATE=3            
+
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+                    
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 34:#menus selection jours de la semaine
+                if update:
+                    update_alarm_days(ST7_param,jours_actifs)
+
+                if ( action=='arrow-' ) :
+                    ST7_param[3]=ST7_param[3]+1
+                    if ST7_param[3]>len(jours_actifs)-1:
+                        ST7_param[3]=0
+                    update=True
+                    
+                if ( action=='arrow+' ) :
+                    ST7_param[3]=ST7_param[3]-1
+                    if ST7_param[3]<0:
+                        ST7_param[3]=len(jours_actifs)-1
+                    update=True                
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST7_param[3]=ST7_param[3]+1
+                    if key<last_rotary_position:
+                        ST7_param[3]=ST7_param[3]-1
+                    if ST7_param[3]>len(jours_actifs)-1:
+                        ST7_param[3]=0
+                    if ST7_param[3]<0:
+                        ST7_param[3]=len(jours_actifs)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if ( action=='select' ) :
+                    if (jours_actifs[ST7_param[3]]):
+                        jours_actifs[ST7_param[3]]=False
+                    else:
+                        jours_actifs[ST7_param[3]]=True
+                    update=True
+
+                if (action=='back') : 
+                    update=True
+                    STATE=3            
+
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+                    
+                if ( action=='home' )  : 
+                    STATE=0   
+                    
+         case 4:#menu USB
+                if update:
+                    init_menu(ST4_param,ST4_menu)
+
+                if ( action=='arrow-' ) :
+                    ST4_param[3]=ST4_param[3]+1
+                    if ST4_param[3]>len(ST4_menu)-1:
+                        ST4_param[3]=0
+                    update=True
+                if ( action=='arrow+' ) :
+                    ST4_param[3]=ST4_param[3]-1
+                    if ST4_param[3]<0:
+                        ST4_param[3]=len(ST4_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST4_param[3]=ST4_param[3]+1
+                    if key<last_rotary_position:
+                        ST4_param[3]=ST4_param[3]-1
+                    if ST4_param[3]>len(ST4_menu)-1:
+                        ST4_param[3]=0
+                    if ST4_param[3]<0:
+                        ST4_param[3]=len(ST4_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if (ST4_param[3]==0 and (action=='select')) :
+                    update=True
+                    update_usb=True
+                    STATE=41
+                    
+                if (ST4_param[3]==1 and (action=='select')) :
+                    update=True
+                    rep=[0,0]
+                    STATE=42     
+
+                if (ST4_param[3]==2 and (action=='select')) :
+                    update=True
+                    rep=[0,0]
+                    STATE=43     
+
+                if (ST4_param[3]==3 and (action=='select')) :
+                    update=True
+                    rep=[0,0]
+                    STATE=44   
+                    
+                if (action=='back') : 
+                    update=True
+                    STATE=1 
+                    
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 41:#menu USB Medias
+                if update_usb:
+                    s=scan_USB_files()
+                    ST41_menu=[]
+                    for i in range(0,len(mp3_files)):
+                        ST41_menu.append(mp3_files[i].name)
+                if update:
+                    init_menu(ST41_param,ST41_menu)
+
+                if ( action=='arrow-' ) :
+                    ST41_param[3]=ST41_param[3]+1
+                    if ST41_param[3]>len(ST41_menu)-1:
+                        ST41_param[3]=0
+                    update=True
+                if ( action=='arrow+' ) :
+                    ST41_param[3]=ST41_param[3]-1
+                    if ST41_param[3]<0:
+                        ST41_param[3]=len(ST41_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST41_param[3]=ST41_param[3]+1
+                    if key<last_rotary_position:
+                        ST41_param[3]=ST41_param[3]-1
+                    if ST41_param[3]>len(ST41_menu)-1:
+                        ST41_param[3]=0
+                    if ST41_param[3]<0:
+                        ST41_param[3]=len(ST41_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+
+                if  (action=='select') :
+                    if (len(mp3_files)>ST41_param[3]):
+                        url=mp3_files[ST41_param[3]]
+                        player.set_mrl(url)
+                        player.play()
+                    
+                if (action=='back') : 
+                    update_usb=True
+                    update=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=1 
+                    
+                if  (action=='logout'):
+                    update_usb=True
+                    save=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    update_usb=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=0   
+
+         case 42:#menu USB MAJ SYSTEME
+                if update:
+                    will_you_load(rep)
+
+                if ( action=='arrow-' ) :
+                    update=True
+                    rep[0]=(rep[0]+1)%2
+                    will_you_load(rep)
+
+                if ( action=='arrow+' ) :
+                    update=True
+                    rep[0]=(rep[0]-1)%2
+                    will_you_load(rep)
+                   
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        rep[0]=(rep[0]+1)%2
+                    if key<last_rotary_position:
+                        rep[0]=(rep[0]-1)%2
+                    update=True
+                    last_rotary_position=ROTARY_param[3]
+                    will_you_load(rep)
+
+                if  (action=='select') :
+                    update=True
+                    if rep[0]==0:
+                        err=load_config("bbdradio.py")
+                        if (err==1):
+                            rep[1]=1
+                            will_you_load(rep)
+                        else:
+                            rep[1]=2
+                            will_you_load(rep)
+                    else:
+                        STATE=1
+     
+                if (action=='back') : 
+                    update_usb=True
+                    update=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=1 
+     
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 43:#menu USB MAJ CONFIG
+                if update:
+                    will_you_load(rep)
+
+                if ( action=='arrow-' ) :
+                    update=True
+                    rep[0]=(rep[0]+1)%2
+                    will_you_load(rep)
+
+                if ( action=='arrow+' ) :
+                    update=True
+                    rep[0]=(rep[0]-1)%2
+                    will_you_load(rep)
+                   
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        rep[0]=(rep[0]+1)%2
+                    if key<last_rotary_position:
+                        rep[0]=(rep[0]-1)%2
+                    update=True
+                    last_rotary_position=ROTARY_param[3]
+                    will_you_load(rep)
+
+                if  (action=='select') :
+                    update=True
+                    if rep[0]==0:
+                        err=load_config("data.ini")
+                        if (err==1):
+                            rep[1]=1
+                            will_you_load(rep)
+                        else:
+                            rep[1]=2
+                            will_you_load(rep)
+                    else:
+                        STATE=1
+     
+                if (action=='back') : 
+                    update_usb=True
+                    update=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=1 
+     
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 44:#menu USB SAUVEGARDE
+                if update:
+                    will_you_save(rep)
+
+                if ( action=='arrow-' ) :
+                    update=True
+                    rep[0]=(rep[0]+1)%2
+                    will_you_save(rep)
+
+                if ( action=='arrow+' ) :
+                    update=True
+                    rep[0]=(rep[0]-1)%2
+                    will_you_save(rep)
+                   
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        rep[0]=(rep[0]+1)%2
+                    if key<last_rotary_position:
+                        rep[0]=(rep[0]-1)%2
+                    update=True
+                    last_rotary_position=ROTARY_param[3]
+                    will_you_save(rep)
+
+                if  (action=='select') :
+                    update=True
+                    if rep[0]==0:
+                        err1=save_config("data.ini")
+                        err2=save_config("bbdradio.py")
+                        if (err1==1) and (err2==1):
+                            rep[1]=1
+                            will_you_save(rep)
+                        else:
+                            rep[1]=2
+                            will_you_save(rep)
+                    else:
+                        STATE=1
+     
+                if (action=='back') : 
+                    update_usb=True
+                    update=True
+                    subprocess.run(["sudo", "umount", mount_path])
+                    STATE=1 
+     
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 5:#menu wifi
+                if update:
+                    s=scan_wifi()
+                    ST5_menu=[]
+                    for i in range(0,len(s)):
+                        w=s[i].split(":")
+                        ST5_menu.append(w[0])
+                    init_menu(ST5_param,ST5_menu)
+
+                if ( action=='arrow-' ) :
+                    ST5_param[3]=ST5_param[3]+1
+                    if ST5_param[3]>len(ST5_menu)-1:
+                        ST5_param[3]=0
+                                   
+                if ( action=='arrow+' ) :
+                    ST5_param[3]=ST5_param[3]-1
+                    if ST5_param[3]<0:
+                        ST5_param[3]=len(ST5_menu)-1                               
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST5_param[3]=ST5_param[3]+1
+                    if key<last_rotary_position:
+                        ST5_param[3]=ST5_param[3]-1
+                    if ST5_param[3]>len(ST5_menu)-1:
+                        ST5_param[3]=0
+                    if ST5_param[3]<0:
+                        ST5_param[3]=len(ST5_menu)-1
+                    last_rotary_position=ROTARY_param[3]                             
+
+                if  (action=='select') :
+                    update=True
+                    pwd=passwd
+                    ssid=ST5_menu[ST3_param[3]]
+                    STATE=50                
+                    
+                if (action=='back') : 
+                    update=True
+                    STATE=1 
+                    
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0   
+
+         case 50:#menu wifi passwd
+            if update:
+               set_passwd(pwd)
+                
+            if (action=='back') :            
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                STATE=5       
+                                     
+            if ( action=='arrow++' ) : #touche UP
+                pwd=pwd+"-"
+                update=True
+                
+            if ( action=='arrow--' ) : #touche DOWN
+                pwd=pwd[:-1]  
+                update=True
+                            
+            if (action=='scroll'):
+                if len(pwd)>0:
+                    if key>last_rotary_position:
+                        r=ord(pwd[len(pwd)-1])+1
+                    if key<last_rotary_position:
+                        r=ord(pwd[len(pwd)-1])-1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    pwd=pwd[:len(pwd)-1]+chr(r)
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+                    
+            if (action=='arrow+') : 
+                if len(pwd)>0:
+                    r=ord(pwd[len(pwd)-1])+1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    pwd=pwd[:len(pwd)-1]+chr(r)
+                    update=True
+                
+            if (action=='arrow-') : 
+                if len(pwd)>0:
+                    r=ord(pwd[len(pwd)-1])-1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    pwd=pwd[:len(pwd)-1]+chr(r)
+                    update=True
+                
+            if ( action=='play' ) :
+                passwd=pwd
+                res=connect_to(ssid,passwd)
+                if (res):
+                    s="connecté à : "+ssid
+                    draw_msg(s)
+                else:
+                    s="echec connection"
+                    draw_msg(s)
+                    
+            if  (action=='logout'):
+                    save=True
+                    STATE=100
+     
+            if ( action=='home' )  : 
+                STATE=0   
+     
+         case 6:#menu IP
+                if update:
+                  try:
+                    os.system('sh get_ip.sh')
+                    f=open("ip.txt")
+                    ip=f.readline().strip('\n')
+                    ST6_menu=[]
+                    ST6_menu.append(ip)
+                    init_menu(ST6_param,ST6_menu)
+                  except:
+                    print('error')
+                    STATE=1   
+                     
+                if (action=='back') : 
+                    update=True
+                    STATE=1 
+                    
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0 
+                    
+         case 7:#menus METEO
+                if update:
+                    init_menu(ST8_param,ST8_menu)
+
+                if ( action=='arrow-' ) :
+                    ST8_param[3]=ST8_param[3]+1
+                    if ST8_param[3]>len(ST8_menu)-1:
+                        ST8_param[3]=0
+                    update=True
+                    
+                if ( action=='arrow+' ) :
+                    ST8_param[3]=ST8_param[3]-1
+                    if ST8_param[3]<0:
+                        ST8_param[3]=len(ST8_menu)-1
+                    update=True
+                    
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        ST8_param[3]=ST8_param[3]+1
+                    if key<last_rotary_position:
+                        ST8_param[3]=ST8_param[3]-1
+                    if ST8_param[3]>len(ST8_menu)-1:
+                        ST8_param[3]=0
+                    if ST8_param[3]<0:
+                        ST8_param[3]=len(ST8_menu)-1
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+                    
+                if (ST8_param[3]==0 and (action=='select')) :
+                    update=True
+                    meteo_loc=meteo_location
+                    STATE=71         #METEO change Location
+
+                if (ST8_param[3]==1 and (action=='select')) :
+                    update=True
+                    meteo_prev_id=0
+                    STATE=72         #METEO previsions
+                    
+                if ( action=='vol+') :
+                    volume=min(volume+5,200)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    update=True
+                    
+                if ( action=='vol-') :
+                    volume=max(volume-5,0)
+                    sound_box(volume)
+                    player.audio_set_volume(volume)
+                    update=True
+                    
+                if (action=='back') : 
+                    STATE=1            
+                    update=True
+                    
+                if (action=='home')  : 
+                    STATE=0   
+
+                if (action=='logout'):
+                    save=True
+                    STATE=100
+
+         case 71:#menu METEO change location
+            if update:
+               set_passwd(meteo_loc)
+                
+            if (action=='back') :            
+                update=True
+                last_rotary_position=ROTARY_param[3]
+                STATE=7       
+                                     
+            if ( action=='arrow+' ) : #touche UP
+                meteo_loc=meteo_loc+"-"
+                update=True
+                
+            if ( action=='arrow-' ) : #touche DOWN
+                meteo_loc=meteo_loc[:-1]  
+                update=True
+                            
+            if (action=='scroll'):
+                if len(meteo_loc)>0:
+                    if key>last_rotary_position:
+                        r=ord(meteo_loc[len(meteo_loc)-1])+1
+                    if key<last_rotary_position:
+                        r=ord(meteo_loc[len(meteo_loc)-1])-1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
+                    last_rotary_position=ROTARY_param[3]
+                    update=True
+                    
+            if (action=='arrow++') : 
+                if len(meteo_loc)>0:
+                    r=ord(meteo_loc[len(meteo_loc)-1])+1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
+                    update=True
+                
+            if (action=='arrow--') : 
+                if len(meteo_loc)>0:
+                    r=ord(meteo_loc[len(meteo_loc)-1])-1
+                    if r>126:
+                        r=32
+                    else:
+                        if r<32:
+                            r=126
+                    meteo_loc=meteo_loc[:len(meteo_loc)-1]+chr(r)
+                    update=True
+                
+            if ( action=='play' ) :
+                meteo_location=meteo_loc
+                    
+            if  (action=='logout'):
+                    save=True
+                    STATE=100
+     
+            if ( action=='home' )  : 
+                STATE=0   
+
+         case 72:#menu METEO previsions
+                if update:
+                  try:
+                    h=get_meteo()
+                    hourly_temperature_2m = h.Variables(0).ValuesAsNumpy()
+                    hourly_precipitation = h.Variables(1).ValuesAsNumpy()
+                    hourly_precipitation_probability = h.Variables(2).ValuesAsNumpy()
+                    hourly_weather_code = h.Variables(3).ValuesAsNumpy()
+                    hourly_wind_speed_10m = h.Variables(4).ValuesAsNumpy()
+                    hourly_rain = h.Variables(5).ValuesAsNumpy()
+                    err=True
+                    display_meteo_prev(meteo_prev_id,err)
+                  except:
+                     err=False
+                     display_meteo_prev(meteo_prev_id,err)  
+                  update=False 
+                  
+                if ( action=='arrow-' ) :
+                        meteo_prev_id=meteo_prev_id-1
+                        if meteo_prev_id==-1:
+                            meteo_prev_id=167                     
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                        display_meteo_prev(meteo_prev_id,err)
+                        update=True
+
+                if ( action=='arrow+' ) :
+                        meteo_prev_id=meteo_prev_id+1
+                        if meteo_prev_id==167:
+                            meteo_prev_id=0                    
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                        display_meteo_prev(meteo_prev_id,err)
+                        update=True
+                    
+                if ( action=='arrow--' ) :
+                        meteo_prev_id=meteo_prev_id-12
+                        if meteo_prev_id==-1:
+                            meteo_prev_id=167                     
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                        display_meteo_prev(meteo_prev_id,err)
+                        update=True
+                        
+                if ( action=='arrow++' ) :
+                        meteo_prev_id=meteo_prev_id+12
+                        if meteo_prev_id==167:
+                            meteo_prev_id=0                    
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                        display_meteo_prev(meteo_prev_id,err)
+                        update=True
+
+                if (action=='scroll'):
+                    if key>last_rotary_position:
+                        meteo_prev_id=meteo_prev_id+1
+                        if meteo_prev_id==167:
+                            meteo_prev_id=0                    
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    if key<last_rotary_position:
+                        meteo_prev_id=meteo_prev_id-1
+                        if meteo_prev_id==-1:
+                            meteo_prev_id=167                     
+                        meteo_prev_id=meteo_prev_id%len(hourly_temperature_2m)
+                    last_rotary_position=ROTARY_param[3]
+                    display_meteo_prev(meteo_prev_id,err)
+                    update=True
+
+                if (action=='back') : 
+                    update=True
+                    STATE=7 
+                    
+                if  (action=='logout'):
+                    save=True
+                    STATE=100
+
+                if ( action=='home' )  : 
+                    STATE=0 
+                                    
+         case 100:#écran de veille
+                if save:
+                    save_params()
+                    save=False
+                now=datetime.now()
+                deltat=now-lastnow
+                if (deltat.microseconds>950000):         
+                    if player.is_playing():
+                        player.stop()
+                    draw=ImageDraw.Draw(image_blanche)
+                    draw.rectangle((0, 0, width, height), outline=0, fill=0)
+                    draw.text((50,2),time_var[1],font=font100,size=1,fill=0)  
+                    draw.text((40,45),date_var[1],font=font100,size=1,fill=0)  
+                    set_time(1)
+                    draw.text((50,2),time_var[1],font=font100,size=1,fill=1)  
+                    draw.text((40,45),date_var[1],font=font100,size=1,fill=1)  
+                    oled.image(image_blanche)               
+                    oled.show()
+                    lastnow=now
+                if (action=='logout' ):
+                    STATE=0
+     
+    except KeyboardInterrupt:
+        print("fin")
+
+except Exception as err:
+    logger.error(err)
          
         
     
