@@ -1667,10 +1667,10 @@ try:
                     if update_scan_wifi:
                         s=scan_wifi()
                         update_scan_wifi=False
-                    ST5_menu=[]
-                    for i in range(0,len(s)):
-                        w=s[i].split(":")
-                        ST5_menu.append(w[0])
+                        ST5_menu=[]
+                        for i in range(0,len(s)):
+                            w=s[i].split(":")
+                            ST5_menu.append(w[0])
                     init_menu(ST5_param,ST5_menu)
 
                 if ( action=='arrow-' ) :
@@ -1699,7 +1699,7 @@ try:
 
                 if  (action=='select') :
                     pwd=passwd
-                    ssid=ST5_menu[ST3_param[3]]
+                    ssid=ST5_menu[ST5_param[3]]
                     update=True
                     STATE=50                
                     
