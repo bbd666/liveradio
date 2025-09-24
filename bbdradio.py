@@ -1054,6 +1054,7 @@ try:
                     
                 if (ST1_param[3]==2 and (action=='select')) :
                     update=True
+                    update_scan_wifi=True                    
                     STATE=5         #wifi                              
                     
                 if (ST1_param[3]==3 and (action=='select')) :
@@ -1663,7 +1664,9 @@ try:
 
          case 5:#menu wifi
                 if update:
-                    s=scan_wifi()
+                    if update_scan_wifi:
+                        s=scan_wifi()
+                        update_scan_wifi=False
                     ST5_menu=[]
                     for i in range(0,len(s)):
                         w=s[i].split(":")
@@ -1674,11 +1677,13 @@ try:
                     ST5_param[3]=ST5_param[3]+1
                     if ST5_param[3]>len(ST5_menu)-1:
                         ST5_param[3]=0
+                    update=True
                                    
                 if ( action=='arrow+' ) :
                     ST5_param[3]=ST5_param[3]-1
                     if ST5_param[3]<0:
                         ST5_param[3]=len(ST5_menu)-1                               
+                    update=True
                     
                 if (action=='scroll'):
                     if key>last_rotary_position:
@@ -1690,11 +1695,12 @@ try:
                     if ST5_param[3]<0:
                         ST5_param[3]=len(ST5_menu)-1
                     last_rotary_position=ROTARY_param[3]                             
+                    update=True
 
                 if  (action=='select') :
-                    update=True
                     pwd=passwd
                     ssid=ST5_menu[ST3_param[3]]
+                    update=True
                     STATE=50                
                     
                 if (action=='back') : 
@@ -1714,6 +1720,7 @@ try:
                 
             if (action=='back') :            
                 update=True
+                update_scan_wifi=True
                 last_rotary_position=ROTARY_param[3]
                 STATE=5       
                                      
