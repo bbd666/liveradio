@@ -1,4 +1,4 @@
-#24/09/2025
+#09/10/2025
 
 import logging
 import requests
@@ -87,6 +87,10 @@ lcd_mode=config['LCD']['DISPLAY']
 update_count=0
 is_connected=True
 snr=''
+t_v=''
+d_v=''
+t_v_c=''
+d_v_c=''
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -968,13 +972,23 @@ try:
                         draw.text((115,42),snr,font=font100,size=1,fill=0)
                         snr=scan[1]
                         draw.text((115,42),snr,font=font100,size=1,fill=1)
+                        draw.text((55,2),t_v_c,font=font1,size=1,fill=0)  
+                        draw.text((32,45),d_v_c,font=font2,size=1,fill=0)  
+                        set_time(0)
+                        draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
+                        draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
+                        t_v_c=time_var[0]
+                        d_v_c=date_var[0]
                     else:
                         draw=ImageDraw.Draw(image_bw)
-                    draw.text((55,2),time_var[0],font=font1,size=1,fill=0)  
-                    draw.text((32,45),date_var[0],font=font2,size=1,fill=0)  
-                    set_time(0)
-                    draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
-                    draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
+                        draw.text((55,2),t_v,font=font1,size=1,fill=0)  
+                        draw.text((32,45),d_v,font=font2,size=1,fill=0)  
+                        set_time(0)
+                        draw.text((55,2),time_var[0],font=font1,size=1,fill=1)  
+                        draw.text((32,45),date_var[0],font=font2,size=1,fill=1)  
+                        t_v=time_var[0]
+                        d_v=date_var[0]
+ 
                     if (scan[0]==ssid):
                         oled.image(image_bw_connected)
                     else:
