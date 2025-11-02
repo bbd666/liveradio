@@ -1,4 +1,4 @@
-#09/10/2025
+#2/11/2025
 
 import logging
 import requests
@@ -823,6 +823,7 @@ try:
         if key==None: 
             if (wiring_mode=='GENUINE'):
                 key=swpinRead()
+                #key=str(key)
                 if key != None:
                     ROTARY_param[4]=0
                     source="clavier"
@@ -875,7 +876,7 @@ try:
                 action='arrow--'
             if ( ((source=="IR") and (key==50))or ((source=="clavier") and (key=='8')) ):
                 action='arrow++'
-            if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if (((source=="IR") and (key==49)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) or ((source=="clavier") and (key==0)))  :
                 action='select'
             if ( ((source=="IR") and (key==32)) or ((source=="clavier") and (key=='9')) ) : 
                 action='back'
@@ -905,7 +906,7 @@ try:
                 action='arrow-'
             if ( ((source=="IR") and (key==514))or ((source=="clavier") and (key=='8')) ):
                 action='arrow+'
-            if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0))  or ((source=="clavier") and (key==0))) :
                 action='select'
             if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
                 action='back'
@@ -934,7 +935,7 @@ try:
                 action='arrow-'
             if ( ((source=="IR") and (key==68))or ((source=="clavier") and (key=='8')) ):
                 action='arrow+'
-            if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0)) ) :
+            if (((source=="IR") and (key==64)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0))  or ((source=="clavier") and (key==0))) :
                 action='select'
             if (( (source=="IR") and (key==66)  ) or ( (source=="clavier") and (key=='9') )) : 
                 action='back'
