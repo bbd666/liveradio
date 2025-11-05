@@ -1,4 +1,4 @@
-#2/11/2025
+#4/11/2025
 
 import logging
 import requests
@@ -288,6 +288,7 @@ def is_wifi_available(ssid: str):
 def connect_to(ssid: str, password: str):
     if not is_wifi_available(ssid):
         return False
+    err=True
     ch = "sudo nmcli device wifi connect "+ssid+" password "+password
     ch_mod=ch.split()
     try:
@@ -297,14 +298,14 @@ def connect_to(ssid: str, password: str):
         input="topgun12",
         encoding="utf8",
       )
-      print(f"Connecté à {ssid} : {proc.stdout.strip()}")
-      return True
+      #print(f"Connecté à {ssid} : {proc.stdout.strip()}")
     except subprocess.CalledProcessError as e:
-      print(f"Erreur nmcli : {e.stderr.strip()}")
-      return False
+      #print(f"Erreur nmcli : {e.stderr.strip()}")
+      err= False
     except Exception as e:
-      print(f"Erreur système : {str(e)}")
-      return False
+      #print(f"Erreur système : {str(e)}")
+      err= False
+    return err
 
 def connect_to_saved(ssid: str):
     if not is_wifi_available(ssid):
@@ -596,12 +597,10 @@ def set_passwd(arg):
     draw.text((5,0),s,font=font200,size=1,fill=1)  
     s=" >>| : ajout"
     draw.text((5,10),s,font=font100,size=1,fill=1)  
-    s=" |<< : suppr"
+    s=" |<< : suppr  >|| : valid"
     draw.text((5,20),s,font=font100,size=1,fill=1)  
-    s=">|| : valid"
-    draw.text((5,30),s,font=font100,size=1,fill=1)  
     for i in range(len(arg)):
-        draw.text(((5+10*i)%(width-10),45+10*((5+10*i)//(width-10))),str(arg[i]),font=font100,size=1,fill=1)  
+        draw.text(((5+10*i)%(width-10),35+10*((5+10*i)//(width-10))),str(arg[i]),font=font100,size=1,fill=1)  
     oled.image(image_blanche)
     oled.show()
     update=False     
@@ -1759,6 +1758,11 @@ try:
                         if r<32:
                             r=126
                     pwd=pwd[:len(pwd)-1]+chr(r)
+                    if ROTARY_param[3]==100:
+                        ROTARY_param[3]=-100
+                    else:
+                        if ROTARY_param[3]==-100:
+                            ROTARY_param[3]=100
                     last_rotary_position=ROTARY_param[3]
                     update=True
                     
