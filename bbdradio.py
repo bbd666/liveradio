@@ -288,7 +288,7 @@ def is_wifi_available(ssid: str):
 def connect_to(ssid: str, password: str):
     if not is_wifi_available(ssid):
         return False
-    err=True
+    err=False
     ch = "sudo nmcli device wifi connect "+ssid+" password "+password
     ch_mod=ch.split()
     try:
@@ -298,6 +298,7 @@ def connect_to(ssid: str, password: str):
         input="topgun12",
         encoding="utf8",
       )
+      err=True
       #print(f"Connecté à {ssid} : {proc.stdout.strip()}")
     except subprocess.CalledProcessError as e:
       #print(f"Erreur nmcli : {e.stderr.strip()}")
@@ -305,6 +306,11 @@ def connect_to(ssid: str, password: str):
     except Exception as e:
       #print(f"Erreur système : {str(e)}")
       err= False
+    scan=get_wifi_snr()
+    if (scan[0]==ssid):
+        err=True
+    else
+        err=False
     return err
 
 def connect_to_saved(ssid: str):
