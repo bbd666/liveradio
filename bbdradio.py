@@ -309,7 +309,7 @@ def connect_to(ssid: str, password: str):
     scan=get_wifi_snr()
     if (scan[0]==ssid):
         err=True
-    else
+    else:
         err=False
     return err
 
