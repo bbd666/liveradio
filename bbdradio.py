@@ -31,6 +31,67 @@ import busio
 logging.basicConfig(filename='/tmp/myapp.log', level=logging.DEBUG,format='%(asctime)s %(levelname)s %(name)s %(message)s')
 logger=logging.getLogger(__name__)
 
+def load_params():
+    global volume
+    global channel_ini
+    global alarm_set
+    global alarm_clck_hour
+    global alarm_clck_min
+    global alarm_source
+    global jours_actifs
+    global nb
+    global liste_url
+    global liste_lbl
+    global dtPin
+    global clkPin
+    global swPin
+    global row_list
+    global col_list
+    global wiring_mode
+    global ST2_param
+    global ST2_menu
+    global ssid
+    global passwd
+    global lcd_mode
+    global meteo_location
+    global protocole
+    
+    #Load URL's from the database
+    config = configparser.ConfigParser()
+    config.read('data.ini')    
+    nb=config['STREAMS']['nb']
+    for i in range(1,int(nb)+1):
+      liste_url.append(config['STREAMS']['url'+str(i)])
+      liste_lbl.append(config['STREAMS']['lbl'+str(i)])
+    volume=int(config['RADIO SETTINGS']['volume'])
+    channel_ini=int(config['RADIO SETTINGS']['index'])
+    dtPin=int(config['RADIO SETTINGS']['pin_dt'])
+    clkPin=int(config['RADIO SETTINGS']['pin_clk'])
+    swPin=int(config['RADIO SETTINGS']['pin_sw'])
+    row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
+    col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
+    wiring_mode=config['RADIO SETTINGS']['WIRING']
+    #wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
+    ST2_param=[4,0,0,channel_ini]
+    ST2_menu=liste_lbl
+    jours_actifs[0]=(config['ALARM']['lundi']==1)
+    jours_actifs[1]=(config['ALARM']['mardi']==1)
+    jours_actifs[2]=(config['ALARM']['mercredi']==1)
+    jours_actifs[3]=(config['ALARM']['jeudi']==1)
+    jours_actifs[4]=(config['ALARM']['vendredi']==1)
+    jours_actifs[5]=(config['ALARM']['samedi']==1)
+    jours_actifs[6]=(config['ALARM']['dimanche']==1)
+    alarm_set=int(config['ALARM']['set'])
+    alarm_clck_hour=int(config['ALARM']['hour'])
+    alarm_clck_min=int(config['ALARM']['min'])
+    alarm_source=config['ALARM']['source']
+    ssid=config['WIFI']['SSID']
+    passwd=config['WIFI']['PASSWD']
+    lcd_mode=config['LCD']['display']
+    meteo_location=config['METEO']['location']
+    protocole=config['REMOTE']['prtcl']
+
+
 ssid=""
 passwd=""
 liste_url=[]
@@ -45,7 +106,7 @@ alarm_clck_min=0
 alarm_source='composition Theodor.mp3'
 jours_actifs=[False]*7
 meteo_location='paris'
-url=liste_url[channel_ini]
+
 protocole='rc-5'
 lcd_mode='I2C'
 ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
@@ -68,6 +129,7 @@ ST7_param=[4,0,0,0]
 ST8_param=[4,0,0,0]
 ST8_menu=["LOCALISATION","PREVISIONS"]
 load_params()
+url=liste_url[channel_ini]
 
 update_count=0
 is_connected=True
@@ -76,46 +138,6 @@ t_v=''
 d_v=''
 t_v_c=''
 d_v_c=''
-
-    
-def load_params():
-    global volume
-    global channel_ini
-    global alarm_set
-    global alarm_clck_hour
-    global alarm_clck_min
-    global alarm_source
-    global jours_actifs
-    global nb
-    global liste_url
-    global liste_lbl
-    global dtPin
-    global clkPin
-    global swPin
-    global row_list
-    global col_list
-    global wiring_mode
-    global ST2_param
-    global ST2_menu
-    
-    #Load URL's from the database
-    config = configparser.ConfigParser()
-    config.read('data.ini')    
-    nb=config['STREAMS']['nb']
-    for i in range(1,int(nb)+1):
-      liste_url.append(config['STREAMS']['url'+str(i)])
-      liste_lbl.append(config['STREAMS']['lbl'+str(i)])
-    volume=int(config['RADIO SETTINGS']['volume'])
-    channel_ini=int(config['RADIO SETTINGS']['index'])
-    dtPin=int(config['RADIO SETTINGS']['pin_dt'])
-    clkPin=int(config['RADIO SETTINGS']['pin_clk'])
-    swPin=int(config['RADIO SETTINGS']['pin_sw'])
-    row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
-    col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
-    wiring_mode=config['RADIO SETTINGS']['WIRING']
-    #wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
-    ST2_param=[4,0,0,channel_ini]
-    ST2_menu=liste_lbl
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -637,12 +659,6 @@ def set_passwd(arg):
     update=False     
 
 def save_params():
-    global volume
-    global channel_ini
-    global alarm_set
-    global alarm_clck_hour
-    global alarm_clck_min
-    global alarm_source
     sind=str(volume)
     schannel=str(channel_ini)
     config.set('RADIO SETTINGS', 'index', schannel)
@@ -680,7 +696,8 @@ def save_params():
     else:
         config.set('ALARM', 'dimanche','0')        
     config.set('WIFI', 'SSID',ssid )
-    config.set('WIFI', 'PASSWD', passwd)
+    config.set('WIFI', 'PASSWD', passwd)    
+    config.set('METEO', 'location', meteo_location)
     with open('data.ini', 'w') as configfile:   
         config.write(configfile)
         
@@ -713,12 +730,14 @@ def load_config(arg):
         if my_file.is_file():
          my_file_target="/home/pierre/"+arg
          shutil.copy(my_file,my_file_target)
-         return 1
+         err = 1
         else:
-         return 0
+         err = 0
     else:
-        return 0
-    subprocess.run(["sudo", "umount", mount_path])
+        err = 0
+    while p.is_mount():
+        subprocess.run(["sudo", "umount", mount_path])
+    return err
     
 def save_config(arg):
     global usb_path
@@ -733,10 +752,12 @@ def save_config(arg):
         my_file="/home/pierre/"+arg
         #shutil.copyfile(my_file,my_file_target)
         os.system('sudo cp ' +str(my_file) +'  '+ str(my_file_target) )       
-        return 1
+        err = 1
     else:
-        return 0
-    subprocess.run(["sudo", "umount", mount_path])
+        err = 0
+    while p.is_mount():
+        subprocess.run(["sudo", "umount", mount_path])
+    return err
   
 if (lcd_mode=='I2C'):
 #------------------------- protocole I2C-------------------------------------------------------------------  
@@ -1525,18 +1546,24 @@ try:
                 if (action=='back') : 
                     update_usb=True
                     update=True
-                    subprocess.run(["sudo", "umount", mount_path])
+                    p=Path(mount_path)
+                    while p.is_mount():
+                        subprocess.run(["sudo", "umount", mount_path])
                     STATE=1 
                     
                 if  (action=='logout'):
                     update_usb=True
                     save=True
-                    subprocess.run(["sudo", "umount", mount_path])
+                    p=Path(mount_path)
+                    while p.is_mount():
+                        subprocess.run(["sudo", "umount", mount_path])
                     STATE=100
 
                 if ( action=='home' )  : 
                     update_usb=True
-                    subprocess.run(["sudo", "umount", mount_path])
+                    p=Path(mount_path)
+                    while p.is_mount():
+                        subprocess.run(["sudo", "umount", mount_path])
                     STATE=0   
 
          case 42:#menu USB MAJ SYSTEME
@@ -1578,7 +1605,6 @@ try:
                 if (action=='back') : 
                     update_usb=True
                     update=True
-                    subprocess.run(["sudo", "umount", mount_path])
                     STATE=1 
      
                 if  (action=='logout'):
@@ -1628,7 +1654,6 @@ try:
                 if (action=='back') : 
                     update_usb=True
                     update=True
-                    subprocess.run(["sudo", "umount", mount_path])
                     STATE=1 
      
                 if  (action=='logout'):
@@ -1678,7 +1703,6 @@ try:
                 if (action=='back') : 
                     update_usb=True
                     update=True
-                    subprocess.run(["sudo", "umount", mount_path])
                     STATE=1 
      
                 if  (action=='logout'):
