@@ -1,4 +1,4 @@
-#4/11/2025
+#16/11/2025
 
 import logging
 import requests
@@ -33,56 +33,41 @@ logger=logging.getLogger(__name__)
 
 ssid=""
 passwd=""
-#Load URL's from the database
-config = configparser.ConfigParser()
-config.read('data.ini')
-nb=config['STREAMS']['nb']
 liste_url=[]
 liste_lbl=[]
-for i in range(1,int(nb)+1):
-  liste_url.append(config['STREAMS']['url'+str(i)])
-  liste_lbl.append(config['STREAMS']['lbl'+str(i)])
-volume=int(config['RADIO SETTINGS']['volume'])
-channel_ini=int(config['RADIO SETTINGS']['index'])
-dtPin=int(config['RADIO SETTINGS']['pin_dt'])
-clkPin=int(config['RADIO SETTINGS']['pin_clk'])
-swPin=int(config['RADIO SETTINGS']['pin_sw'])
-row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
-col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
+row_list=[0,0,0,0]
+col_list=[0,0,0,0]
+channel_ini=0
 wiring_mode='MODIFIED'
-wiring_mode=config['RADIO SETTINGS']['WIRING']
-#wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
-
-ssid=config['WIFI']['SSID']
-passwd=config['WIFI']['PASSWD']
-alarm_set=int(config['ALARM']['set'])
-alarm_clck_hour=int(config['ALARM']['hour'])
-alarm_clck_min=int(config['ALARM']['min'])
-alarm_source=config['ALARM']['source']
+alarm_set=0
+alarm_clck_hour=0
+alarm_clck_min=0
+alarm_source='composition Theodor.mp3'
 jours_actifs=[False]*7
-if (config['ALARM']['lundi']=='1'):
-    jours_actifs[0]=True
-if (config['ALARM']['mardi']=='1'):
-    jours_actifs[1]=True
-if (config['ALARM']['mercredi']=='1'):
-    jours_actifs[2]=True
-if (config['ALARM']['jeudi']=='1'):
-    jours_actifs[3]=True
-if (config['ALARM']['vendredi']=='1'):
-    jours_actifs[4]=True
-if (config['ALARM']['samedi']=='1'):
-    jours_actifs[5]=True
-if (config['ALARM']['dimanche']=='1'):
-    jours_actifs[6]=True
-meteo_location='liverdun'
-meteo_location=config['METEO']['LOCATION']
-
+meteo_location='paris'
 url=liste_url[channel_ini]
 protocole='rc-5'
-protocole=config['REMOTE']['prtcl']
-
 lcd_mode='I2C'
-lcd_mode=config['LCD']['DISPLAY']
+ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
+ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP","METEO"]
+ST2_param=[4,0,0,channel_ini]
+ST2_menu=liste_lbl
+ST3_param=[4,0,0,0]
+ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES","JOURS ACTIFS"]
+ST100_param=[0,0,0,0]
+ST100_menu=[]
+ST5_param=[4,0,0,0]
+ST5_menu=[]
+ST4_param=[4,0,0,0]
+ST4_menu=["MEDIAS","MAJ SYSTEME","MAJ CONFIG","SAUVEGARDE"]
+ST41_param=[4,0,0,0]
+ST41_menu=[]
+ST6_param=[4,0,0,0]
+ST6_menu=[]
+ST7_param=[4,0,0,0]
+ST8_param=[4,0,0,0]
+ST8_menu=["LOCALISATION","PREVISIONS"]
+load_params()
 
 update_count=0
 is_connected=True
@@ -91,6 +76,46 @@ t_v=''
 d_v=''
 t_v_c=''
 d_v_c=''
+
+    
+def load_params():
+    global volume
+    global channel_ini
+    global alarm_set
+    global alarm_clck_hour
+    global alarm_clck_min
+    global alarm_source
+    global jours_actifs
+    global nb
+    global liste_url
+    global liste_lbl
+    global dtPin
+    global clkPin
+    global swPin
+    global row_list
+    global col_list
+    global wiring_mode
+    global ST2_param
+    global ST2_menu
+    
+    #Load URL's from the database
+    config = configparser.ConfigParser()
+    config.read('data.ini')    
+    nb=config['STREAMS']['nb']
+    for i in range(1,int(nb)+1):
+      liste_url.append(config['STREAMS']['url'+str(i)])
+      liste_lbl.append(config['STREAMS']['lbl'+str(i)])
+    volume=int(config['RADIO SETTINGS']['volume'])
+    channel_ini=int(config['RADIO SETTINGS']['index'])
+    dtPin=int(config['RADIO SETTINGS']['pin_dt'])
+    clkPin=int(config['RADIO SETTINGS']['pin_clk'])
+    swPin=int(config['RADIO SETTINGS']['pin_sw'])
+    row_list=[int(config['RADIO SETTINGS']['pin_30']),int(config['RADIO SETTINGS']['pin_31']),int(config['RADIO SETTINGS']['pin_32'])]
+    col_list=[int(config['RADIO SETTINGS']['pin_33']),int(config['RADIO SETTINGS']['pin_34']),int(config['RADIO SETTINGS']['pin_35'])]
+    wiring_mode=config['RADIO SETTINGS']['WIRING']
+    #wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
+    ST2_param=[4,0,0,channel_ini]
+    ST2_menu=liste_lbl
 
 def get_ir_device():
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -731,7 +756,6 @@ width = 128
 height = 64
 image_blanche = Image.new('1',(128,64))
 
-
 image = Image.open("logo_connected.jpg")
 image_r = image.resize((width,height), Image.LANCZOS)
 image_bw_connected = image_r.convert("1")
@@ -757,25 +781,6 @@ IR_param=[-100,time.perf_counter(),0,0]
 ROTARY_param=[0,0,0,0,-1]
 time_date=[0,0]
    
-ST1_param=[4,0,0,0]#nb_lignes,shiftbloc,decal,fillindex
-ST1_menu=["WEB STATIONS","ALARME","WIFI","USB","ADRESSE IP","METEO"]
-ST2_param=[4,0,0,channel_ini]
-ST2_menu=liste_lbl
-ST3_param=[4,0,0,0]
-ST3_menu=["ACTIVATION","REGLAGE","SOURCE SONORE","MELODIES","JOURS ACTIFS"]
-ST100_param=[0,0,0,0]
-ST100_menu=[]
-ST5_param=[4,0,0,0]
-ST5_menu=[]
-ST4_param=[4,0,0,0]
-ST4_menu=["MEDIAS","MAJ SYSTEME","MAJ CONFIG","SAUVEGARDE"]
-ST41_param=[4,0,0,0]
-ST41_menu=[]
-ST6_param=[4,0,0,0]
-ST6_menu=[]
-ST7_param=[4,0,0,0]
-ST8_param=[4,0,0,0]
-ST8_menu=["LOCALISATION","PREVISIONS"]
 
 def update_alarm_days(arg,items):
     global update
@@ -1611,6 +1616,7 @@ try:
                     if rep[0]==0:
                         err=load_config("data.ini")
                         if (err==1):
+                            load_params()
                             rep[1]=1
                             will_you_load(rep)
                         else:
