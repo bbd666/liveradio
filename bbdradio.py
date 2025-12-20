@@ -1,4 +1,4 @@
-#16/11/2025
+#20/12/2025
 
 import logging
 import requests
@@ -32,6 +32,7 @@ logging.basicConfig(filename='/tmp/myapp.log', level=logging.DEBUG,format='%(asc
 logger=logging.getLogger(__name__)
 
 def load_params():
+    global config
     global volume
     global channel_ini
     global alarm_set
@@ -659,6 +660,7 @@ def set_passwd(arg):
     update=False     
 
 def save_params():
+    global config
     sind=str(volume)
     schannel=str(channel_ini)
     config.set('RADIO SETTINGS', 'index', schannel)
