@@ -57,22 +57,22 @@ def Keypad4x4Read(cols,rows):
 # define swPin read function
 def swpinRead():
     global ROTARY_param
-    GPIO.output(row_list(30), GPIO.LOW)
+    GPIO.output(int(row_list[0]), GPIO.LOW)
     result=GPIO.input(swPin)
     if (result==0):
       key=0
-      GPIO.output(row_list(30), GPIO.HIGH) 
-	  globalCounter=0
-	  ROTARY_param[4]=0
+      GPIO.output(int(row_list[0]), GPIO.HIGH) 
+      globalCounter=0
+      ROTARY_param[4]=0
       return(key)
-    GPIO.output(row_list(30), GPIO.HIGH)
+    GPIO.output(int(row_list[0]), GPIO.HIGH)
 	
 # define Rotary encoder function
 def rotaryDeal(arg):
     arg[1] = GPIO.input(dtPin)
     while(not GPIO.input(clkPin)):
-    arg[2] = GPIO.input(dtPin)
-    arg[0] = 1
+     arg[2] = GPIO.input(dtPin)
+     arg[0] = 1
     if arg[0] == 1:
         arg[0] = 0
         if (arg[1] == 0) and (arg[2] == 1):
@@ -87,14 +87,14 @@ while True:
     key=Keypad4x4Read(col_list, row_list)
     if key != None:
         source="clavier"
-        print("You pressed: "+key+" ; "+source)
+        print("You pressed: "+str(key)+" ; "+source)
         time.sleep(0.3)
     else:
         key=swpinRead()
         if key != None:
             ROTARY_param[4]=0
             source="Encoder button"
-            print("You pressed: "+key+" ; "+source)
+            print("You pressed: "+str(key)+" ; "+source)
             time.sleep(0.3) 
         else:   
             counter=ROTARY_param[3]
@@ -102,7 +102,7 @@ while True:
             if not(counter==ROTARY_param[3]):
                 source="rotary"
                 key=ROTARY_param[3]
-                print("You pressed: "+key+" ; "+source)
+                print("You pressed: "+str(key)+" ; "+source)
                 time.sleep(0.3) 
                 ROTARY_param[4]=-1
             else:
