@@ -1,4 +1,4 @@
-#20/12/2025
+#05/02/2026
 
 import logging
 import requests
@@ -75,13 +75,13 @@ def load_params():
     #wiring_mode : 'MODIFIED';'GENUINE';'REWELDED'
     ST2_param=[4,0,0,channel_ini]
     ST2_menu=liste_lbl
-    jours_actifs[0]=(config['ALARM']['lundi']==1)
-    jours_actifs[1]=(config['ALARM']['mardi']==1)
-    jours_actifs[2]=(config['ALARM']['mercredi']==1)
-    jours_actifs[3]=(config['ALARM']['jeudi']==1)
-    jours_actifs[4]=(config['ALARM']['vendredi']==1)
-    jours_actifs[5]=(config['ALARM']['samedi']==1)
-    jours_actifs[6]=(config['ALARM']['dimanche']==1)
+    jours_actifs[0]=(config['ALARM']['lundi']=='1')
+    jours_actifs[1]=(config['ALARM']['mardi']=='1')
+    jours_actifs[2]=(config['ALARM']['mercredi']=='1')
+    jours_actifs[3]=(config['ALARM']['jeudi']=='1')
+    jours_actifs[4]=(config['ALARM']['vendredi']=='1')
+    jours_actifs[5]=(config['ALARM']['samedi']=='1')
+    jours_actifs[6]=(config['ALARM']['dimanche']=='1')
     alarm_set=int(config['ALARM']['set'])
     alarm_clck_hour=int(config['ALARM']['hour'])
     alarm_clck_min=int(config['ALARM']['min'])
