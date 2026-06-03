@@ -10,8 +10,10 @@ import time
 
 # define PINs according to cabling
 # following array matches 1,2,3,4 PINs from 4x4 Keypad Matrix
+#30,31,32
 row_list=[23,24,25]
 # following array matches 5,6,7,8 PINs from 4x4 Keypad Matrix
+#33,34,35
 col_list=[4,5,6]
 
 # set row pins to output, all to high

@@ -5,6 +5,7 @@ import time
 clkPin = 12    # CLK Pin
 dtPin = 9    # DT Pin
 swPin = 7    # Button Pin
+pin30 = 22
 
 globalCounter = 0
 
@@ -17,8 +18,20 @@ def setup():
    GPIO.setup(clkPin, GPIO.IN)    # input mode
    GPIO.setup(dtPin, GPIO.IN)
    GPIO.setup(swPin, GPIO.IN)
+   GPIO.setup(pin30, GPIO.OUT)
 #   GPIO.setup(swPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+def swpinRead():
+    global ROTARY_param
+    GPIO.output(pin30, GPIO.LOW)
+    result=GPIO.input(swPin)
+    if (result==0):
+        key=0
+        GPIO.output(pin30, GPIO.HIGH)
+        globalCounter=0
+        return(key)
+    GPIO.output(pin30, GPIO.HIGH)
+    
 def rotaryDeal():
    global flag
    global Last_dt_Status
@@ -47,12 +60,15 @@ def loop():
    
    
    while True:
-      det=GPIO.input(swPin)
-      if (det==0):
+      #det=GPIO.input(swPin)
+      #if (det==0):
+      key=swpinRead()
+      if key!=None:
         global globalCounter      
         globalCounter = 0      
       rotaryDeal()
       if (tmp != globalCounter) or (det==0):
+      #if (tmp != globalCounter) or (det==0):
          print ('globalCounter = %d' % globalCounter)
          tmp = globalCounter
          time.sleep(0.3)
