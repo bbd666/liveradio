@@ -1,4 +1,4 @@
-#05/02/2026
+#15/06/2026
 
 import logging
 import requests
@@ -939,6 +939,10 @@ try:
                 action='arrow-'
             if ( ((source=="IR") and (key==514))or ((source=="clavier") and (key=='8')) ):
                 action='arrow+'
+            if ( (source=="IR") and (key==525) ):
+                action='arrow--'
+            if ( (source=="IR") and (key==526) ):
+                action='arrow++'
             if (((source=="IR") and (key==536)) or ((source=="rotary") and (key==0) and (ROTARY_param[4]==0))  or ((source=="clavier") and (key==0))) :
                 action='select'
             if (( (source=="IR") and (key==521)  ) or ( (source=="clavier") and (key=='9') )) : 
