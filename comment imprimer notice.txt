@@ -1,0 +1,3 @@
+ouvrir le fichier notice.pdf
+imprimer
+sélectionner imprimer recto/verso, retourner sur es bords courts
