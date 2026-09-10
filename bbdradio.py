@@ -990,7 +990,7 @@ try:
                     is_connected=is_connected_to(ssid)
                     if not(is_connected):
                         alarm_src='composition Theodor.mp3'   
-                        player.set_mrl(alarm_src)                    
+            player.set_mrl(alarm_src)                    
             if not(player.is_playing()):
                 player.play()
                 player.audio_set_volume(volume)
